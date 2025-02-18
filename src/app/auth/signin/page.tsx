@@ -2,11 +2,14 @@
 
 import { signIn } from "next-auth/react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -14,8 +17,9 @@ export default function SignIn() {
     setIsLoading(true);
 
     try {
-      const result = await signIn("email", {
+      const result = await signIn("credentials", {
         email,
+        password,
         redirect: false,
         callbackUrl: "/dashboard",
       });
@@ -24,9 +28,8 @@ export default function SignIn() {
         setError(result.error);
         setIsLoading(false);
       } else {
-        // Show success message and optionally redirect
-        alert("Check your email for a sign-in link");
-        setIsLoading(false);
+        // Redirect to dashboard on successful login
+        router.push("/dashboard");
       }
     } catch (error) {
       setError("An unexpected error occurred");
@@ -61,6 +64,22 @@ export default function SignIn() {
                 disabled={isLoading}
               />
             </div>
+            <div>
+              <label htmlFor="password" className="sr-only">
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
+              />
+            </div>
           </div>
 
           {error && <div className="text-red-500 text-center">{error}</div>}
@@ -75,7 +94,7 @@ export default function SignIn() {
               } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
               disabled={isLoading}
             >
-              {isLoading ? "Sending..." : "Send Magic Link"}
+              {isLoading ? "Signing In..." : "Sign In"}
             </button>
           </div>
         </form>

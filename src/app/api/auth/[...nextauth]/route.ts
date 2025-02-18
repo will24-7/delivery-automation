@@ -1,79 +1,94 @@
-import NextAuth, { AuthOptions } from "next-auth";
-import { MongoDBAdapter } from "@next-auth/mongodb-adapter";
-import EmailProvider from "next-auth/providers/email";
-import clientPromise from "@/lib/mongodb";
+import NextAuth, { AuthOptions, Session, User } from "next-auth";
+import { JWT } from "next-auth/jwt";
+import CredentialsProvider from "next-auth/providers/credentials";
+
+// Simple in-memory user validation for development
+const validateCredentials = (
+  credentials: Record<"email" | "password", string>
+) => {
+  // Development-only hardcoded credentials
+  const validEmail = "admin@example.com";
+  const validPassword = "password123";
+
+  return credentials.email === validEmail &&
+    credentials.password === validPassword
+    ? { id: "1", email: credentials.email, name: "Admin User" }
+    : null;
+};
+
 const authConfig: AuthOptions = {
   providers: [
-    // Email/Magic Link Authentication
-    EmailProvider({
-      server: process.env.EMAIL_SERVER || {
-        host: process.env.EMAIL_SERVER_HOST,
-        port: process.env.EMAIL_SERVER_PORT,
-        auth: {
-          user: process.env.EMAIL_SERVER_USER,
-          pass: process.env.EMAIL_SERVER_PASSWORD,
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        email: {
+          label: "Email",
+          type: "email",
+          placeholder: "user@example.com",
         },
+        password: { label: "Password", type: "password" },
       },
-      from: process.env.EMAIL_FROM,
+      async authorize(credentials) {
+        // Validate credentials
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Email and password are required");
+        }
+
+        const user = validateCredentials(credentials);
+
+        if (!user) {
+          throw new Error("Invalid email or password");
+        }
+
+        return user;
+      },
     }),
   ],
-  adapter: MongoDBAdapter(clientPromise),
 
   // Custom pages for authentication
   pages: {
     signIn: "/auth/signin",
-    signOut: "/auth/signout",
-    error: "/auth/error", // Error code passed in query string as ?error=
-    verifyRequest: "/auth/verify-request", // Used for magic link verification
+    error: "/auth/error",
   },
 
   // Callbacks for additional customization
   callbacks: {
-    async session({ session, user }) {
-      // Explicitly add the user ID to the session
-      if (user) {
-        session.user.id = user.id;
+    async session({ session, token }: { session: Session; token: JWT }) {
+      // Add user ID to session from token
+      if (token) {
+        session.user.id = token.sub || "";
       }
       return session;
     },
 
-    // Add additional error handling
-    async signIn({ user }) {
-      // You can add custom sign-in logic here
-      // For example, checking if the user is allowed to sign in
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      if (!user) {
-        throw new Error("Authentication failed");
+    async jwt({ token, user }: { token: JWT; user?: User }) {
+      // Add user ID to token on first login
+      if (user) {
+        token.sub = user.id;
       }
-      return true;
+      return token;
     },
   },
 
-  // Additional security and session configurations
+  events: {
+    async signOut(message: { token?: JWT; session?: Session }) {
+      // Optional: Additional sign out event handling
+      console.log("Sign out event triggered", message.token?.sub);
+    },
+  },
+
+  // Session configuration
   session: {
-    strategy: "database", // Use database sessions for more security
+    strategy: "jwt", // Switch to JWT for credentials provider
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 
   // Debug options (remove in production)
   debug: process.env.NODE_ENV === "development",
-
-  // Enhanced error handling
-  events: {
-    async signIn(message) {
-      console.log("Sign in event", message);
-    },
-    async signOut(message) {
-      console.log("Sign out event", message);
-    },
-    async createUser(message) {
-      console.log("User created", message);
-    },
-  },
 };
 
 export const authOptions = authConfig;
 
-const handler = NextAuth(authOptions);
+const handler = NextAuth(authConfig);
 
 export { handler as GET, handler as POST };

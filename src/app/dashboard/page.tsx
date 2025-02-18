@@ -21,7 +21,18 @@ export default function Dashboard() {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Dashboard</h1>
           <button
-            onClick={() => signOut({ callbackUrl: "/auth/signin" })}
+            onClick={async () => {
+              try {
+                await signOut({
+                  callbackUrl: "/",
+                  redirect: true,
+                });
+              } catch (error) {
+                console.error("Sign out failed:", error);
+                // Optional: Add user-friendly error handling,
+                // such as displaying a toast or error message
+              }
+            }}
             className="btn btn-error btn-sm"
           >
             Sign Out
