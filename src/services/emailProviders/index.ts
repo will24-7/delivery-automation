@@ -60,15 +60,21 @@ type MailReachResponse = {
   };
 };
 
+// Import the EmailGuard provider implementation
+import { EmailGuardProvider as EmailGuardProviderImpl } from "./EmailGuardProvider";
+
 /**
  * EmailGuard Provider Implementation
- * Placeholder implementation for EmailGuard API integration
+ * Adapter to match IEmailTestProvider interface
  */
 class EmailGuardProvider implements IEmailTestProvider {
-  constructor(private apiKey: string) {
+  private provider: EmailGuardProviderImpl;
+
+  constructor(apiKey: string) {
     if (!apiKey) {
       throw new EmailProviderError("API key is required", "EmailGuard");
     }
+    this.provider = new EmailGuardProviderImpl(apiKey);
   }
 
   async createTest(domain: string): Promise<{
@@ -80,8 +86,12 @@ class EmailGuardProvider implements IEmailTestProvider {
       throw new EmailProviderError("Domain is required", "EmailGuard");
     }
 
-    // Placeholder for API call
-    throw new EmailProviderError("Not implemented", "EmailGuard");
+    const result = await this.provider.createPlacementTest(domain);
+    return {
+      testId: result.uuid,
+      status: result.status,
+      filterPhrase: result.name,
+    };
   }
 
   async getTestResults(testId: string): Promise<{
@@ -97,8 +107,16 @@ class EmailGuardProvider implements IEmailTestProvider {
       throw new EmailProviderError("Test ID is required", "EmailGuard");
     }
 
-    // Placeholder for API call
-    throw new EmailProviderError("Not implemented", "EmailGuard");
+    const result = await this.provider.getTestResults(testId);
+    return {
+      score: result.overallScore,
+      status: result.status,
+      testEmails: result.testEmails.map((email) => ({
+        email: email.email,
+        status: email.status,
+        folder: email.folder || undefined,
+      })),
+    };
   }
 }
 

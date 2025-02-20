@@ -1,8 +1,8 @@
 import { IEmailTestProvider } from "./emailProviders";
 import Domain, { IDomain } from "../models/Domain";
-import PlacementTestResult, {
-  IPlacementTestResult,
-} from "../models/PlacementTestResult";
+"mpo/osPlacemePlTastRnsult,t{
+t IPlacementResuRult,
+} from"..modls/PlemntRult";
 
 /**
  * Configuration interface for TestProcessor

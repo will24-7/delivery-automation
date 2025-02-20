@@ -1,58 +1,31 @@
-import type { DefaultUser } from "next-auth";
+import Domain, { IDomain, PoolType, MailboxType } from "./Domain";
+import User, {
+  IUser,
+  IApiKey,
+  ISubscription,
+  IPoolSettings,
+  IPoolConfig,
+  IRotationRules,
+  IAutomationTriggers,
+} from "./User";
+import Pool, { IPool } from "./Pool";
 
-// Type definitions
-export type DomainStatus = "active" | "warming" | "inactive";
-export type TestStatus = "created" | "waiting_for_email" | "completed";
-export type ProviderType = "Google" | "Microsoft";
+export {
+  // Models
+  Domain,
+  User,
+  Pool,
 
-// Shared interfaces
-export interface IEmailGuardWorkspace {
-  uuid: string;
-  name: string;
-  remainingInboxPlacementTests: number;
-  totalInboxPlacementTests: number;
-}
-
-export interface IApiKey {
-  key: string;
-  name: string;
-  createdAt: Date;
-  lastUsed?: Date;
-  rateLimit: {
-    requestsPerMinute: number;
-    requestsPerDay: number;
-    currentMinuteRequests: number;
-    currentDayRequests: number;
-    lastResetTime: Date;
-  };
-}
-
-export interface ISubscription {
-  status: "active" | "inactive" | "trial" | "expired";
-  type: "free" | "basic" | "pro" | "enterprise";
-  startDate: Date;
-  endDate?: Date;
-}
-
-// Model & Interface exports
-export { default as User } from "./User";
-export type { IUser } from "./User";
-
-export { default as Domain } from "./Domain";
-export type { IDomain } from "./Domain";
-
-export { default as PlacementTestResult } from "./PlacementTestResult";
-export type { IPlacementTestResult } from "./PlacementTestResult";
-
-// NextAuth type augmentation
-declare module "next-auth" {
-  interface User extends DefaultUser {
-    companyName?: string;
-  }
-}
-
-declare module "next-auth/jwt" {
-  interface JWT {
-    companyName?: string;
-  }
-}
+  // Types
+  type IDomain,
+  type IUser,
+  type IApiKey,
+  type ISubscription,
+  type IPoolSettings,
+  type IPoolConfig,
+  type IRotationRules,
+  type IAutomationTriggers,
+  type IPool,
+  type PoolType,
+  type MailboxType,
+};

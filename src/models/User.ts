@@ -1,6 +1,5 @@
 import mongoose, { Document, Schema } from "mongoose";
 import { randomBytes } from "crypto";
-
 // EmailGuard workspace interface
 export interface IEmailGuardWorkspace {
   uuid: string;
@@ -9,7 +8,49 @@ export interface IEmailGuardWorkspace {
   totalInboxPlacementTests: number;
 }
 
-// Interfaces for type safety
+// Pool and Mailbox Settings interfaces
+export interface IRotationRules {
+  minDomainsAvailable: number;
+  scoreThreshold: number;
+  recoveryPeriod: number;
+}
+
+export interface IAutomationTriggers {
+  testSchedule: string;
+  volumeAdjustment: string;
+  notifications: string[];
+}
+
+export interface IPoolConfig {
+  automationRules: {
+    testFrequency: number;
+    scoreThreshold: number;
+    requiredTestsForGraduation: number;
+    recoveryPeriod: number;
+  };
+  rotationRules: IRotationRules;
+  automationTriggers: IAutomationTriggers;
+}
+
+export interface IPoolSettings {
+  sending: {
+    dailyLimit: number;
+    minTimeGap: number;
+  };
+  warmup: {
+    dailyEmails: number;
+    rampUp: boolean;
+    rampUpValue: number;
+    randomize: {
+      min: number;
+      max: number;
+    };
+    replyRate: number;
+    weekdaysOnly: boolean;
+  };
+}
+
+// API Key interface
 export interface IApiKey {
   key: string;
   name: string;
@@ -24,6 +65,7 @@ export interface IApiKey {
   };
 }
 
+// Subscription interface
 export interface ISubscription {
   status: "active" | "inactive" | "trial" | "expired";
   type: "free" | "basic" | "pro" | "enterprise";
@@ -31,14 +73,34 @@ export interface ISubscription {
   endDate?: Date;
 }
 
+// Main User interface
 export interface IUser extends Document {
   email: string;
   name?: string;
   companyName?: string;
   apiKeys: IApiKey[];
   subscription: ISubscription;
-  emailguardApiKey?: string;
   workspace?: IEmailGuardWorkspace;
+
+  // API Keys
+  smartleadApiKey: string;
+  smartleadUserId: string;
+  emailguardApiKey: string;
+
+  // Default Settings
+  poolPresets: {
+    StandardMS: IPoolSettings;
+    SpecialMS: IPoolSettings;
+    Custom: IPoolSettings;
+  };
+
+  // Pool Configuration
+  poolSettings: {
+    InitialWarming: IPoolConfig;
+    ReadyWaiting: IPoolConfig;
+    Active: IPoolConfig;
+    Recovery: IPoolConfig;
+  };
 
   // Methods
   generateApiKey(name: string): Promise<string>;
@@ -127,7 +189,7 @@ const UserSchema = new Schema<IUser>(
     },
     emailguardApiKey: {
       type: String,
-      sparse: true, // Allows null/undefined values while maintaining uniqueness
+      sparse: true,
     },
     workspace: {
       uuid: String,
@@ -141,6 +203,31 @@ const UserSchema = new Schema<IUser>(
         default: 0,
       },
     },
+    smartleadApiKey: {
+      type: String,
+      required: true,
+    },
+    smartleadUserId: {
+      type: String,
+      required: true,
+    },
+    poolPresets: {
+      type: Schema.Types.Mixed,
+      default: () => ({
+        StandardMS: {},
+        SpecialMS: {},
+        Custom: {},
+      }),
+    },
+    poolSettings: {
+      type: Schema.Types.Mixed,
+      default: () => ({
+        InitialWarming: {},
+        ReadyWaiting: {},
+        Active: {},
+        Recovery: {},
+      }),
+    },
   },
   {
     timestamps: true,
@@ -151,10 +238,7 @@ const UserSchema = new Schema<IUser>(
 UserSchema.methods.generateApiKey = async function (
   name: string
 ): Promise<string> {
-  // Generate a secure random API key
   const apiKey = randomBytes(32).toString("hex");
-
-  // Add the new API key to the user's apiKeys array
   this.apiKeys.push({
     key: apiKey,
     name: name,
@@ -261,11 +345,6 @@ UserSchema.methods.validateEmailGuardAPIKey =
 
     try {
       // TODO: Implement actual EmailGuard API validation
-      // This is a placeholder that should be replaced with actual API call
-      // const response = await fetch('https://api.emailguard.com/validate', {
-      //   headers: { Authorization: `Bearer ${this.emailguardApiKey}` }
-      // });
-      // return response.ok;
       return true;
     } catch (error) {
       console.error("EmailGuard API validation error:", error);
@@ -277,6 +356,11 @@ UserSchema.methods.validateEmailGuardAPIKey =
 UserSchema.methods.getRemainingTests = function (): number {
   return this.workspace?.remainingInboxPlacementTests || 0;
 };
+
+// Create indexes
+UserSchema.index({ email: 1 }, { unique: true });
+UserSchema.index({ "apiKeys.key": 1 });
+UserSchema.index({ smartleadUserId: 1 });
 
 // Create the model
 const User = mongoose.models.User || mongoose.model<IUser>("User", UserSchema);
