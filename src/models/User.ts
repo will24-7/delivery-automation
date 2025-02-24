@@ -6,6 +6,38 @@ export interface IEmailGuardWorkspace {
   name: string;
   remainingInboxPlacementTests: number;
   totalInboxPlacementTests: number;
+  remainingEmailVerificationCredits: number;
+  totalEmailVerificationCredits: number;
+  remainingEmailAccounts: number;
+  totalEmailAccounts: number;
+  remainingDomains: number;
+  totalDomains: number;
+  remainingEmailTests: number;
+  totalEmailTests: number;
+  remainingContentSpamChecks: number;
+  totalContentSpamChecks: number;
+  remainingHostedDomainRedirects: number;
+  totalHostedDomainRedirects: number;
+}
+
+// Team member interface
+export interface ITeamMember {
+  email: string;
+  role: "admin" | "member";
+  permissions: string[];
+  addedAt: Date;
+  lastActive?: Date;
+}
+
+// Client interface
+export interface IClient {
+  id: string;
+  name: string;
+  email: string;
+  logo?: string;
+  logoUrl?: string;
+  permissions: string[];
+  restrictedCategories: string[];
 }
 
 // Pool and Mailbox Settings interfaces
@@ -56,6 +88,8 @@ export interface IApiKey {
   name: string;
   createdAt: Date;
   lastUsed?: Date;
+  provider: "smartlead" | "emailguard" | "custom";
+  scopes: string[];
   rateLimit: {
     requestsPerMinute: number;
     requestsPerDay: number;
@@ -63,6 +97,8 @@ export interface IApiKey {
     currentDayRequests: number;
     lastResetTime: Date;
   };
+  status: "active" | "revoked";
+  expiresAt?: Date;
 }
 
 // Subscription interface
@@ -82,10 +118,28 @@ export interface IUser extends Document {
   subscription: ISubscription;
   workspace?: IEmailGuardWorkspace;
 
-  // API Keys
+  // API Keys & Integration
   smartleadApiKey: string;
   smartleadUserId: string;
+  smartleadWorkspace?: {
+    id: string;
+    name: string;
+    role: string;
+    settings: {
+      enableAiEspMatching: boolean;
+      defaultSendAsPlainText: boolean;
+      defaultSchedule: {
+        timezone: string;
+        days: number[];
+        startHour: string;
+        endHour: string;
+      };
+    };
+  };
   emailguardApiKey: string;
+  emailguardWorkspaceId: string;
+  teamMembers: ITeamMember[];
+  clients: IClient[];
 
   // Default Settings
   poolPresets: {

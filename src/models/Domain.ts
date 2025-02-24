@@ -7,6 +7,12 @@ export type PoolType =
   | "Active"
   | "Recovery";
 export type MailboxType = "StandardMS" | "SpecialMS" | "Custom";
+export type CampaignStatus =
+  | "DRAFTED"
+  | "ACTIVE"
+  | "COMPLETED"
+  | "STOPPED"
+  | "PAUSED";
 
 interface IPlacementTestResult {
   id: string;
@@ -15,21 +21,50 @@ interface IPlacementTestResult {
   inboxPlacement: number;
   spamPlacement: number;
   testEmails: string[];
+  provider: string;
+  testId: string;
+  details: {
+    deliverability: number;
+    spamScore: number;
+    spfStatus: string;
+    dkimStatus: string;
+    dmarcStatus: string;
+    testEmailAddresses: {
+      email: string;
+      provider: string;
+      folder: string;
+      status: string;
+    }[];
+  };
 }
 
 interface IRecentTest {
   score: number;
   date: Date;
+  provider: string;
 }
 
 interface ISmartleadSettings {
   dailyLimit: number;
   minTimeGap: number;
+  espMatchingEnabled: boolean;
+  sendAsPlainText: boolean;
+  scheduler: {
+    timezone: string;
+    days: number[];
+    startHour: string;
+    endHour: string;
+    minTimeBetweenEmails: number;
+    maxLeadsPerDay: number;
+  };
 }
 
 interface ISendingSettings {
   dailyLimit: number;
   minTimeGap: number;
+  followUpPercentage: number;
+  trackSettings: string[];
+  stopLeadSettings: string;
 }
 
 interface IWarmupSettings {
@@ -42,16 +77,38 @@ interface IWarmupSettings {
   };
   replyRate: number;
   weekdaysOnly: boolean;
+  warmupReputation: string;
+  totalSentCount: number;
+  spamCount: number;
+  warmupStatus: string;
 }
 
 interface IRotationEvent {
   date: Date;
   action: "rotated_in" | "rotated_out";
   reason: string;
+  affectedCampaigns: string[];
+}
+
+interface ISequenceVariant {
+  id: string;
+  subject: string;
+  emailBody: string;
+  variantLabel: string;
+}
+
+interface ICampaignSequence {
+  id: string;
+  seqNumber: number;
+  seqDelayDetails: {
+    delayInDays: number;
+  };
+  variants: ISequenceVariant[];
 }
 
 // Main Domain interface
 export interface IDomain extends Document {
+  _id: mongoose.Types.ObjectId;
   name: string;
 
   // Integration IDs
@@ -80,8 +137,28 @@ export interface IDomain extends Document {
   // Status & Tracking
   healthScore: number;
   consecutiveLowScores: number;
-  campaigns: string[];
+  campaigns: {
+    id: string;
+    status: CampaignStatus;
+    name: string;
+    sequences: ICampaignSequence[];
+  }[];
   rotationHistory: IRotationEvent[];
+  testSchedule: {
+    nextTest: Date;
+    frequency: "twice_weekly" | "after_21_days";
+    lastTestId: string;
+  };
+  healthMetrics: {
+    averageScore: number;
+    consecutiveLowScores: number;
+    lastChecked: Date;
+  };
+
+  save(): Promise<this>;
+  updateScore(newScore: number): Promise<void>;
+  scheduleNextTest(): Promise<Date>;
+  getRecentTestAverage(): number;
 
   // Methods
   updateScore(newScore: number): Promise<void>;
@@ -108,7 +185,6 @@ const DomainSchema = new Schema<IDomain>(
     smartleadId: {
       type: String,
       required: true,
-      index: true,
     },
     smartleadSettings: {
       dailyLimit: {
@@ -122,6 +198,40 @@ const DomainSchema = new Schema<IDomain>(
         required: true,
         min: 15,
         max: 600,
+      },
+      espMatchingEnabled: {
+        type: Boolean,
+        default: false,
+      },
+      sendAsPlainText: {
+        type: Boolean,
+        default: false,
+      },
+      scheduler: {
+        timezone: {
+          type: String,
+          required: true,
+        },
+        days: {
+          type: [Number],
+          required: true,
+        },
+        startHour: {
+          type: String,
+          required: true,
+        },
+        endHour: {
+          type: String,
+          required: true,
+        },
+        minTimeBetweenEmails: {
+          type: Number,
+          required: true,
+        },
+        maxLeadsPerDay: {
+          type: Number,
+          required: true,
+        },
       },
     },
     userId: {
@@ -165,6 +275,33 @@ const DomainSchema = new Schema<IDomain>(
         max: 100,
       },
       testEmails: [String],
+      provider: {
+        type: String,
+        required: true,
+      },
+      testId: {
+        type: String,
+        required: true,
+      },
+      details: {
+        deliverability: {
+          type: Number,
+        },
+        spamScore: {
+          type: Number,
+        },
+        spfStatus: String,
+        dkimStatus: String,
+        dmarcStatus: String,
+        testEmailAddresses: [
+          {
+            email: String,
+            provider: String,
+            folder: String,
+            status: String,
+          },
+        ],
+      },
     },
     testHistory: [
       {
@@ -172,18 +309,12 @@ const DomainSchema = new Schema<IDomain>(
         date: Date,
         score: {
           type: Number,
-          min: 0,
-          max: 100,
         },
         inboxPlacement: {
           type: Number,
-          min: 0,
-          max: 100,
         },
         spamPlacement: {
           type: Number,
-          min: 0,
-          max: 100,
         },
         testEmails: [String],
       },
@@ -210,102 +341,109 @@ const DomainSchema = new Schema<IDomain>(
         dailyLimit: {
           type: Number,
           required: true,
-          min: 1,
-          max: 2000,
-          validate: {
-            validator: Number.isInteger,
-            message: "Daily limit must be an integer",
-          },
         },
         minTimeGap: {
           type: Number,
           required: true,
-          min: 15,
-          max: 600,
-          validate: {
-            validator: Number.isInteger,
-            message: "Minimum time gap must be an integer",
-          },
         },
       },
       warmup: {
         dailyEmails: {
           type: Number,
           required: true,
-          min: 1,
-          max: 100,
-          validate: {
-            validator: Number.isInteger,
-            message: "Daily emails must be an integer",
-          },
         },
         rampUp: {
           type: Boolean,
           required: true,
-          default: true,
         },
         rampUpValue: {
           type: Number,
           required: true,
-          min: 1,
-          max: 40,
-          validate: {
-            validator: Number.isInteger,
-            message: "Ramp up value must be an integer",
-          },
         },
         randomize: {
           min: {
             type: Number,
             required: true,
-            validate: {
-              validator: Number.isInteger,
-              message: "Randomize min must be an integer",
-            },
           },
           max: {
             type: Number,
             required: true,
-            validate: {
-              validator: Number.isInteger,
-              message: "Randomize max must be an integer",
-            },
           },
         },
         replyRate: {
           type: Number,
           required: true,
-          min: 0,
-          max: 100,
-          validate: {
-            validator: Number.isInteger,
-            message: "Reply rate must be an integer",
-          },
         },
         weekdaysOnly: {
           type: Boolean,
           required: true,
-          default: true,
         },
       },
     },
     healthScore: {
       type: Number,
       required: true,
-      min: 0,
-      max: 100,
       default: 100,
     },
     consecutiveLowScores: {
       type: Number,
       required: true,
       default: 0,
-      min: 0,
     },
-    campaigns: {
-      type: [String],
-      default: [],
-    },
+    campaigns: [
+      {
+        id: {
+          type: String,
+          required: true,
+        },
+        status: {
+          type: String,
+          required: true,
+        },
+        name: {
+          type: String,
+          required: true,
+        },
+        sequences: [
+          {
+            id: {
+              type: String,
+              required: true,
+            },
+            seqNumber: {
+              type: Number,
+              required: true,
+            },
+            seqDelayDetails: {
+              delayInDays: {
+                type: Number,
+                required: true,
+              },
+            },
+            variants: [
+              {
+                id: {
+                  type: String,
+                  required: true,
+                },
+                subject: {
+                  type: String,
+                  required: true,
+                },
+                emailBody: {
+                  type: String,
+                  required: true,
+                },
+                variantLabel: {
+                  type: String,
+                  required: true,
+                },
+              },
+            ],
+          },
+        ],
+      },
+    ],
     rotationHistory: [
       {
         date: {
@@ -314,20 +452,66 @@ const DomainSchema = new Schema<IDomain>(
         },
         action: {
           type: String,
-          enum: ["rotated_in", "rotated_out"],
           required: true,
         },
         reason: {
           type: String,
           required: true,
         },
+        affectedCampaigns: {
+          type: [String],
+          default: [],
+        },
       },
     ],
+    testSchedule: {
+      nextTest: {
+        type: Date,
+        required: true,
+      },
+      frequency: {
+        type: String,
+        required: true,
+      },
+      lastTestId: {
+        type: String,
+      },
+    },
+    healthMetrics: {
+      averageScore: {
+        type: Number,
+        default: 100,
+      },
+      consecutiveLowScores: {
+        type: Number,
+        default: 0,
+      },
+      lastChecked: {
+        type: Date,
+        default: Date.now,
+      },
+    },
   },
   {
     timestamps: true,
   }
 );
+
+// Handle pool type changes
+DomainSchema.pre("save", async function (next) {
+  if (this.isModified("poolType")) {
+    // Update pool entry date and reset counters
+    const now = new Date();
+    this.poolEntryDate = now;
+    this.consecutiveLowScores = 0;
+
+    // Reset health metrics on pool change
+    if (this.poolType === "Recovery") {
+      this.healthScore = 100;
+    }
+  }
+  next();
+});
 
 // Validate randomize min/max relationship
 DomainSchema.pre("save", function (next) {
@@ -353,22 +537,44 @@ DomainSchema.methods.updateScore = async function (
     id: new mongoose.Types.ObjectId().toString(),
     date: new Date(),
     score: newScore,
-    inboxPlacement: newScore, // These would typically come from the test provider
+    inboxPlacement: newScore,
     spamPlacement: 100 - newScore,
-    testEmails: [], // Would be populated from test provider
+    testEmails: [],
+    provider: "EmailGuard",
+    testId: `test-${Date.now()}`,
+    details: {
+      deliverability: newScore,
+      spamScore: (100 - newScore) / 10,
+      spfStatus: "pass",
+      dkimStatus: "pass",
+      dmarcStatus: "pass",
+      testEmailAddresses: [],
+    },
   };
 
-  // Update last placement test
+  // Update last placement test and test history
   this.lastPlacementTest = newTest;
-
-  // Add to test history
   this.testHistory.push(newTest);
 
-  // Update health score
-  this.healthScore = newScore;
+  // Ensure test history doesn't exceed 10 entries
+  if (this.testHistory.length > 10) {
+    this.testHistory = this.testHistory.slice(-10);
+  }
 
-  // Track consecutive low scores
-  if (newScore < 50) {
+  // Update health score based on recent test average
+  const recentTests = this.testHistory.slice(-3);
+  this.healthScore =
+    recentTests.length > 0
+      ? Math.round(
+          recentTests.reduce(
+            (sum: number, test: IPlacementTestResult) => sum + test.score,
+            0
+          ) / recentTests.length
+        )
+      : newScore;
+
+  // Track consecutive low scores (threshold at 75%)
+  if (newScore < 75) {
     this.consecutiveLowScores++;
   } else {
     this.consecutiveLowScores = 0;
@@ -378,19 +584,25 @@ DomainSchema.methods.updateScore = async function (
   if (this.testHistory.length >= 3) {
     const averageScore = this.getRecentTestAverage();
 
-    if (this.poolType === "InitialWarming" && averageScore >= 80) {
+    if (this.poolType === "InitialWarming" && averageScore >= 75) {
       this.poolType = "ReadyWaiting";
+      this.poolEntryDate = new Date();
       this.rotationHistory.push({
         date: new Date(),
         action: "rotated_out",
         reason: "Graduated from initial warming",
+        affectedCampaigns: [],
       });
-    } else if (this.poolType === "Active" && averageScore <= 20) {
+    } else if (this.poolType === "Active" && this.consecutiveLowScores >= 2) {
       this.poolType = "Recovery";
+      this.poolEntryDate = new Date();
       this.rotationHistory.push({
         date: new Date(),
         action: "rotated_out",
-        reason: "Low placement scores",
+        reason: "Consecutive low scores",
+        affectedCampaigns: this.campaigns
+          .filter((c: { status: CampaignStatus }) => c.status === "ACTIVE")
+          .map((c: { id: string }) => c.id),
       });
     }
   }
@@ -401,25 +613,33 @@ DomainSchema.methods.updateScore = async function (
 // Calculate next test schedule based on domain status
 DomainSchema.methods.scheduleNextTest = async function (): Promise<Date> {
   const now = new Date();
-  let nextTest: Date;
+  let delayHours: number;
 
   switch (this.poolType) {
     case "InitialWarming":
-      nextTest = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours
+      // First test after 21 days, then every 7 days
+      const daysInPool = Math.floor(
+        (now.getTime() - this.poolEntryDate.getTime()) / (24 * 60 * 60 * 1000)
+      );
+      delayHours = daysInPool < 21 ? 21 * 24 : 7 * 24;
       break;
     case "Active":
-      nextTest = new Date(now.getTime() + 72 * 60 * 60 * 1000); // 72 hours
+      // Twice per week
+      delayHours = 84; // 3.5 days
       break;
     case "Recovery":
-      nextTest = new Date(now.getTime() + 48 * 60 * 60 * 1000); // 48 hours
+      // Every 7 days
+      delayHours = 168; // 7 days
       break;
     case "ReadyWaiting":
-      nextTest = new Date(now.getTime() + 36 * 60 * 60 * 1000); // 36 hours
+      // Once per week
+      delayHours = 168; // 7 days
       break;
     default:
       throw new Error("Invalid pool type");
   }
 
+  const nextTest = new Date(now.getTime() + delayHours * 60 * 60 * 1000);
   this.nextScheduledTest = nextTest;
   await this.save();
   return nextTest;
@@ -430,12 +650,14 @@ DomainSchema.methods.getRecentTestAverage = function (): number {
   if (this.testHistory.length === 0) return 0;
 
   const recentTests = this.testHistory.slice(-3);
-  return Math.round(
+  const average =
     recentTests.reduce(
       (sum: number, test: IPlacementTestResult) => sum + test.score,
       0
-    ) / recentTests.length
-  );
+    ) / recentTests.length;
+
+  // Round to 2 decimal places for precise comparisons
+  return Math.round(average * 100) / 100;
 };
 
 // Create indexes

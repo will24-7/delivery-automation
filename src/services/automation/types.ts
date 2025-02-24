@@ -100,3 +100,18 @@ export interface AutomationManagerConfig {
   criticalJobTypes: AutomationJobType[];
   metricsUpdateInterval: number; // in milliseconds
 }
+
+export type TestResult = {
+  score: number;
+  placement: string;
+};
+
+export type NotificationType =
+  | "TEST_SCHEDULED"
+  | "TEST_COMPLETED"
+  | "ROTATION_NEEDED"
+  | "DOMAIN_TRANSITIONED"
+  | "HEALTH_ALERT"
+  | "WARNING";
+
+export type EventHandler = (type: string, data: AutomationEvent) => void;

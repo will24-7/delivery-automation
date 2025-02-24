@@ -1,0 +1,103 @@
+# Project Configuration
+
+## Tech Stack
+
+- Next.js 14+ with App Router
+- MongoDB for data storage
+- EmailGuard for placement testing
+- Smartlead for campaign management
+- TailwindCSS & DaisyUI for UI
+
+## Project Structure
+
+/src
+/app # Next.js pages
+/components # React components
+/services # API integrations
+/models # MongoDB models
+/lib # Utilities
+/types # TypeScript types
+
+## Domain Pool Rules
+
+- Initial Warming: 21 days minimum
+- Ready-Waiting: Staging for active use
+- Active: Bi-weekly testing
+- Recovery: 21 days minimum
+
+## Security
+
+DO NOT read or modify:
+
+- .env files
+- API keys
+- Authentication tokens
+- Database credentials
+- OAuth secrets
+
+## Validation Rules
+
+### Domain State Transitions
+
+```typescript
+// Aligned with src/services/pools/validation.ts
+type DomainState = "warming" | "ready" | "active" | "recovery";
+
+const validTransitions = {
+  warming: ["ready"],
+  ready: ["active"],
+  active: ["recovery"],
+  recovery: ["ready"],
+};
+
+function validateTransition(current: DomainState, next: DomainState): boolean {
+  return validTransitions[current]?.includes(next) ?? false;
+}
+```
+
+### Pool Configuration
+
+```typescript
+// Based on src/services/pools/presets/PoolPresets.ts
+interface PoolConfig {
+  warmupDuration: number; // Days
+  recoveryDuration: number; // Days
+  maxActiveTime: number; // Days
+  healthCheckInterval: number; // Hours
+}
+
+const defaultConfig: PoolConfig = {
+  warmupDuration: 21,
+  recoveryDuration: 21,
+  maxActiveTime: 90,
+  healthCheckInterval: 12,
+};
+```
+
+### Rate Limiting
+
+```typescript
+// Implements src/services/jobs/RateLimiter.ts pattern
+interface RateLimitConfig {
+  maxRequests: number;
+  windowMs: number;
+}
+
+const apiLimits = {
+  emailguard: { maxRequests: 100, windowMs: 60000 },
+  smartlead: { maxRequests: 50, windowMs: 60000 },
+};
+```
+
+## Integration Points
+
+- EmailGuard API: Placement testing and monitoring
+- Smartlead API: Campaign management and execution
+- MongoDB: Data persistence and state management
+
+## Monitoring Requirements
+
+- Health checks every 12 hours
+- Real-time placement score tracking
+- Automated recovery triggers
+- Comprehensive logging
