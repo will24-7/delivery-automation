@@ -5,7 +5,10 @@ import { LoggerService } from "../../services/logging/LoggerService";
 import { BackgroundProcessor } from "../../services/jobs/BackgroundProcessor";
 import { EmailGuardService } from "../../services/emailguard/EmailGuardService";
 import { SmartleadService } from "../../services/smartlead/SmartleadService";
-import { AutomationEventType } from "@/services/automation/types";
+import {
+  AutomationEventType,
+  NotificationType,
+} from "@/services/automation/types";
 
 interface TestLoggerService extends LoggerService {
   logs: Array<{ level: string; message: string; meta?: unknown }>;
@@ -70,26 +73,30 @@ describe("AutomationEngine Notification Tests", () => {
     engine.subscribeToEvents(eventHandlerMock);
   });
 
-  test("should send critical alerts for health issues", async () => {
+  test("should send critical alert when domain score drops below 60%", async () => {
     const testDomain = createTestDomain({
       poolType: "Active",
-      healthScore: 50,
+      healthScore: 55,
     });
 
     testDomain.healthMetrics = {
-      averageScore: 50,
+      averageScore: 55,
       consecutiveLowScores: 3,
       lastChecked: new Date(),
     };
 
-    await engine.notify("HEALTH_ALERT", {
+    const notificationType: NotificationType = "HEALTH_ALERT";
+    await engine.notify(notificationType, {
       type: AutomationEventType.HEALTH_CHECK_NEEDED,
       domainId: testDomain.id,
       timestamp: new Date(),
       data: {
-        score: 50,
+        score: 55,
         urgent: true,
-        message: "Critical health score detected",
+        message: "Domain score critically low (below 60%)",
+        metadata: {
+          thresholdBroken: true,
+        },
       },
     });
 
@@ -99,29 +106,38 @@ describe("AutomationEngine Notification Tests", () => {
         type: AutomationEventType.HEALTH_CHECK_NEEDED,
         data: expect.objectContaining({
           urgent: true,
+          score: 55,
         }),
       })
     );
 
-    expect(logger.info).toHaveBeenCalledWith(
-      expect.stringContaining("Automation notification: HEALTH_ALERT"),
-      expect.any(Object)
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.stringContaining("Critical domain health alert"),
+      expect.objectContaining({
+        domainId: testDomain.id,
+        score: 55,
+      })
     );
   });
 
-  test("should send warning notifications for potential issues", async () => {
+  test("should send warning for potential issues", async () => {
     const testDomain = createTestDomain({
       poolType: "Active",
-      healthScore: 75,
+      healthScore: 70,
     });
 
-    await engine.notify("WARNING", {
+    const warningType: NotificationType = "WARNING";
+    await engine.notify(warningType, {
       type: AutomationEventType.TEST_SCHEDULED,
       domainId: testDomain.id,
       timestamp: new Date(),
       data: {
-        score: 75,
-        message: "Test score approaching threshold",
+        score: 70,
+        message: "Domain pool capacity approaching threshold",
+        metadata: {
+          remainingDomains: 5,
+          threshold: 10,
+        },
       },
     });
 
@@ -130,40 +146,53 @@ describe("AutomationEngine Notification Tests", () => {
       expect.objectContaining({
         type: AutomationEventType.TEST_SCHEDULED,
         data: expect.objectContaining({
-          score: 75,
+          score: 70,
+        }),
+      })
+    );
+
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.stringContaining("Potential domain pool issue"),
+      expect.objectContaining({
+        score: 70,
+      })
+    );
+  });
+
+  test("should log successful domain rotation", async () => {
+    const testDomain = createTestDomain({
+      poolType: "Active",
+      healthScore: 90,
+    });
+
+    const rotationType: NotificationType = "ROTATION_NEEDED";
+    await engine.notify(rotationType, {
+      type: AutomationEventType.ROTATION_TRIGGERED,
+      domainId: testDomain.id,
+      timestamp: new Date(),
+      data: {
+        score: 90,
+        message: "Domain successfully rotated",
+        targetPool: "active-domains",
+      },
+    });
+
+    expect(eventHandlerMock).toHaveBeenCalledWith(
+      "ROTATION_NEEDED",
+      expect.objectContaining({
+        type: AutomationEventType.ROTATION_TRIGGERED,
+        data: expect.objectContaining({
+          score: 90,
+          targetPool: "active-domains",
         }),
       })
     );
 
     expect(logger.info).toHaveBeenCalledWith(
-      expect.stringContaining("Automation notification: WARNING"),
-      expect.any(Object)
-    );
-  });
-
-  test("should handle info level events", async () => {
-    const testDomain = createTestDomain({
-      poolType: "Active",
-      healthScore: 85,
-    });
-
-    await engine.notify("TEST_COMPLETED", {
-      type: AutomationEventType.SCORE_UPDATED,
-      domainId: testDomain.id,
-      timestamp: new Date(),
-      data: {
-        score: 85,
-        message: "Test completed successfully",
-      },
-    });
-
-    expect(eventHandlerMock).toHaveBeenCalledWith(
-      "TEST_COMPLETED",
+      expect.stringContaining("Domain rotation completed"),
       expect.objectContaining({
-        type: AutomationEventType.SCORE_UPDATED,
-        data: expect.objectContaining({
-          score: 85,
-        }),
+        domainId: testDomain.id,
+        targetPool: "active-domains",
       })
     );
   });
@@ -177,7 +206,8 @@ describe("AutomationEngine Notification Tests", () => {
       healthScore: 80,
     });
 
-    await engine.notify("ROTATION_NEEDED", {
+    const multiSubscribeType: NotificationType = "ROTATION_NEEDED";
+    await engine.notify(multiSubscribeType, {
       type: AutomationEventType.ROTATION_TRIGGERED,
       domainId: testDomain.id,
       timestamp: new Date(),
@@ -204,7 +234,8 @@ describe("AutomationEngine Notification Tests", () => {
       healthScore: 70,
     });
 
-    await engine.notify("HEALTH_ALERT", {
+    const failureType: NotificationType = "HEALTH_ALERT";
+    await engine.notify(failureType, {
       type: AutomationEventType.HEALTH_CHECK_NEEDED,
       domainId: testDomain.id,
       timestamp: new Date(),

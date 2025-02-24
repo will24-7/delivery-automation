@@ -117,7 +117,7 @@ describe("AutomationEngine Health Monitoring Tests", () => {
 
     jest.spyOn(Domain, "findById").mockResolvedValue(testDomain);
 
-    await engine.monitorDomainHealth(testDomain.id);
+    await engine.monitorDomainHealth(testDomain._id.toString());
 
     expect(testDomain.healthMetrics?.averageScore).toBeCloseTo(87.8);
     expect(testDomain.healthMetrics?.consecutiveLowScores).toBe(0);
@@ -143,7 +143,7 @@ describe("AutomationEngine Health Monitoring Tests", () => {
 
     jest.spyOn(Domain, "findById").mockResolvedValue(testDomain);
 
-    await engine.monitorDomainHealth(testDomain.id);
+    await engine.monitorDomainHealth(testDomain._id.toString());
 
     expect(logger.info).toHaveBeenCalledWith(
       expect.stringContaining("Automation notification: ROTATION_NEEDED"),
@@ -174,7 +174,7 @@ describe("AutomationEngine Health Monitoring Tests", () => {
 
     jest.spyOn(Domain, "findById").mockResolvedValue(testDomain);
 
-    await engine.monitorDomainHealth(testDomain.id);
+    await engine.monitorDomainHealth(testDomain._id.toString());
 
     expect(testDomain.healthMetrics.consecutiveLowScores).toBeGreaterThan(0);
     expect(await engine.checkRotationNeeded(testDomain)).toBe(true);

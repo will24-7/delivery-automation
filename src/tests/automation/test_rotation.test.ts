@@ -121,7 +121,7 @@ describe("AutomationEngine Rotation Tests", () => {
     };
 
     jest.spyOn(Domain, "findById").mockResolvedValue(testDomain);
-    await engine.executeRotation(testDomain.id);
+    await engine.executeRotation(testDomain._id.toString());
 
     expect(testDomain.poolType).toBe("Recovery");
     expect(testDomain.rotationHistory).toContainEqual(
@@ -139,7 +139,10 @@ describe("AutomationEngine Rotation Tests", () => {
       healthScore: 90,
     });
 
-    jest.spyOn(Domain, "findOne").mockResolvedValue(replacementDomain);
+    const mockSort = jest.fn().mockResolvedValue(replacementDomain);
+    const mockFindOne = jest.fn().mockReturnValue({ sort: mockSort });
+    jest.spyOn(Domain, "findOne").mockImplementation(mockFindOne);
+
     const result = await engine.findReplacementDomain();
 
     expect(result).toBeDefined();
@@ -202,9 +205,11 @@ describe("AutomationEngine Rotation Tests", () => {
     });
 
     jest.spyOn(Domain, "findById").mockResolvedValue(activeDomain);
-    jest.spyOn(Domain, "findOne").mockResolvedValue(replacementDomain);
+    const mockSort = jest.fn().mockResolvedValue(replacementDomain);
+    const mockFindOne = jest.fn().mockReturnValue({ sort: mockSort });
+    jest.spyOn(Domain, "findOne").mockImplementation(mockFindOne);
 
-    await engine.executeRotation(activeDomain.id);
+    await engine.executeRotation(activeDomain._id.toString());
 
     expect(smartleadService.updateCampaignDomain).toHaveBeenCalledWith(
       "campaign-1",
@@ -225,9 +230,11 @@ describe("AutomationEngine Rotation Tests", () => {
     });
 
     jest.spyOn(Domain, "findById").mockResolvedValue(activeDomain);
-    jest.spyOn(Domain, "findOne").mockResolvedValue(null);
+    const mockSort = jest.fn().mockResolvedValue(null);
+    const mockFindOne = jest.fn().mockReturnValue({ sort: mockSort });
+    jest.spyOn(Domain, "findOne").mockImplementation(mockFindOne);
 
-    await engine.executeRotation(activeDomain.id);
+    await engine.executeRotation(activeDomain._id.toString());
 
     expect(logger.error).toHaveBeenCalledWith(
       expect.stringContaining("No suitable replacement domain found"),
@@ -249,10 +256,12 @@ describe("AutomationEngine Rotation Tests", () => {
     });
 
     jest.spyOn(Domain, "find").mockResolvedValue(poolDomains);
-    jest.spyOn(Domain, "findOne").mockResolvedValue(replacementDomain);
+    const mockSort = jest.fn().mockResolvedValue(replacementDomain);
+    const mockFindOne = jest.fn().mockReturnValue({ sort: mockSort });
+    jest.spyOn(Domain, "findOne").mockImplementation(mockFindOne);
 
     // Attempt rotation of low score domain
-    await engine.executeRotation(poolDomains[2].id);
+    await engine.executeRotation(poolDomains[2]._id.toString());
 
     expect(poolDomains[2].poolType).toBe("Recovery");
     expect(replacementDomain.poolType).toBe("Active");
@@ -317,14 +326,16 @@ describe("AutomationEngine Rotation Tests", () => {
     });
 
     jest.spyOn(Domain, "findById").mockResolvedValue(activeDomain);
-    jest.spyOn(Domain, "findOne").mockResolvedValue(replacementDomain);
+    const mockSort = jest.fn().mockResolvedValue(replacementDomain);
+    const mockFindOne = jest.fn().mockReturnValue({ sort: mockSort });
+    jest.spyOn(Domain, "findOne").mockImplementation(mockFindOne);
 
     // Mock campaign update failure
     smartleadService.updateCampaignDomain = jest
       .fn()
       .mockRejectedValue(new Error("Campaign update failed"));
 
-    await engine.executeRotation(activeDomain.id);
+    await engine.executeRotation(activeDomain._id.toString());
 
     expect(logger.error).toHaveBeenCalledWith(
       expect.stringContaining("Failed to update campaign"),

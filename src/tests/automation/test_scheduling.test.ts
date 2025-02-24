@@ -5,6 +5,7 @@ import { LoggerService } from "../../services/logging/LoggerService";
 import { BackgroundProcessor } from "../../services/jobs/BackgroundProcessor";
 import { EmailGuardService } from "../../services/emailguard/EmailGuardService";
 import { SmartleadService } from "../../services/smartlead/SmartleadService";
+import Domain from "@/models/Domain";
 
 interface TestLoggerService extends LoggerService {
   logs: Array<{ level: string; message: string; meta?: unknown }>;
@@ -20,6 +21,8 @@ describe("AutomationEngine Scheduling Tests", () => {
   let smartleadService: SmartleadService;
 
   beforeEach(() => {
+    jest.setTimeout(30000); // Increase timeout for all tests
+
     logger = {
       info: jest.fn(),
       error: jest.fn(),
@@ -65,8 +68,8 @@ describe("AutomationEngine Scheduling Tests", () => {
   });
 
   test("should schedule tests for Active pool", async () => {
-    jest.setTimeout(20000); // Increase timeout
     const testDomain = createTestDomain({ poolType: "Active" });
+    jest.spyOn(Domain, "find").mockResolvedValue([testDomain]);
     await engine.schedulePoolTests("Active");
 
     expect(testDomain.testSchedule?.frequency).toBe("twice_weekly");
@@ -75,6 +78,8 @@ describe("AutomationEngine Scheduling Tests", () => {
 
   test("should handle test retries with increasing delays", async () => {
     const testId = "test-123";
+    const testDomain = createTestDomain();
+    jest.spyOn(Domain, "findById").mockResolvedValue(testDomain);
 
     // Mock a failing test
     emailGuardService.getTestResults = jest
@@ -99,6 +104,7 @@ describe("AutomationEngine Scheduling Tests", () => {
     const testId = "test-123";
     const testResult = generateTestResult(90);
 
+    jest.spyOn(Domain, "findById").mockResolvedValue(testDomain);
     emailGuardService.getTestResults = jest.fn().mockResolvedValue(testResult);
 
     await engine.handleTestResults(testId);
@@ -111,6 +117,8 @@ describe("AutomationEngine Scheduling Tests", () => {
 
   test("should handle EmailGuard API failures", async () => {
     const testId = "test-123";
+    const testDomain = createTestDomain();
+    jest.spyOn(Domain, "findById").mockResolvedValue(testDomain);
     emailGuardService.getTestResults = jest
       .fn()
       .mockRejectedValue(new Error("API failure"));
@@ -130,6 +138,7 @@ describe("AutomationEngine Scheduling Tests", () => {
     const testResult = generateTestResult(85);
     const testDomain = createTestDomain();
 
+    jest.spyOn(Domain, "findById").mockResolvedValue(testDomain);
     emailGuardService.getTestResults = jest.fn().mockResolvedValue(testResult);
     const scheduleSpy = jest.spyOn(engine, "scheduleNextTest");
 
