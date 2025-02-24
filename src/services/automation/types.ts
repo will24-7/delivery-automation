@@ -25,6 +25,9 @@ export interface AutomationEvent {
     nextScheduledDate?: Date;
     error?: Error;
     metadata?: Record<string, unknown>;
+    targetPool?: string;
+    reason?: string;
+    urgent?: boolean;
   };
 }
 

@@ -17,6 +17,11 @@ interface IPlacementTestResult {
   testEmails: string[];
 }
 
+interface IRecentTest {
+  score: number;
+  date: Date;
+}
+
 interface ISmartleadSettings {
   dailyLimit: number;
   minTimeGap: number;
@@ -63,6 +68,8 @@ export interface IDomain extends Document {
   lastPlacementTest: IPlacementTestResult;
   testHistory: IPlacementTestResult[];
   nextScheduledTest: Date;
+  testResultIds: mongoose.Types.ObjectId[];
+  recentTests: IRecentTest[];
 
   // Settings per Pool
   settings: {
@@ -179,6 +186,18 @@ const DomainSchema = new Schema<IDomain>(
           max: 100,
         },
         testEmails: [String],
+      },
+    ],
+    testResultIds: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "PlacementTestResult",
+      },
+    ],
+    recentTests: [
+      {
+        score: Number,
+        date: Date,
       },
     ],
     nextScheduledTest: {

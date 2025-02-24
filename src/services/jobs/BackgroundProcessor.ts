@@ -242,37 +242,41 @@ export class BackgroundProcessor {
       // Execute job based on type
       switch (type) {
         case "health":
-          await this.automationManager.handleAutomationEvent({
+          const event = {
             type: AutomationEventType.HEALTH_CHECK_NEEDED,
             domainId,
             timestamp: new Date(),
             data: job.data.data || {},
-          });
+          };
+          await this.automationManager.handleAutomationEvent(event);
           break;
         case "test":
-          await this.automationManager.handleAutomationEvent({
+          const testEvent = {
             type: AutomationEventType.TEST_SCHEDULED,
             domainId,
             timestamp: new Date(),
             data: job.data.data || {},
-          });
+          };
+          await this.automationManager.handleAutomationEvent(testEvent);
           break;
         case "warmup":
-          await this.automationManager.handleAutomationEvent({
+          const warmupEvent = {
             type: AutomationEventType.WARMUP_UPDATE,
             domainId,
             timestamp: new Date(),
             data: job.data.data || {},
-          });
+          };
+          await this.automationManager.handleAutomationEvent(warmupEvent);
           break;
         case "rotation":
           this.rotationLock = true;
-          await this.automationManager.handleAutomationEvent({
+          const rotationEvent = {
             type: AutomationEventType.ROTATION_TRIGGERED,
             domainId,
             timestamp: new Date(),
             data: job.data.data || {},
-          });
+          };
+          await this.automationManager.handleAutomationEvent(rotationEvent);
           this.rotationLock = false;
           break;
         default:
@@ -300,7 +304,7 @@ export class BackgroundProcessor {
    */
   private async handleCriticalFailure(job: Job, error: Error): Promise<void> {
     // Notify automation manager of critical failure
-    await this.automationManager.handleAutomationEvent({
+    const criticalEvent = {
       type: AutomationEventType.HEALTH_CHECK_NEEDED,
       domainId: job.domainId,
       timestamp: new Date(),
@@ -308,7 +312,8 @@ export class BackgroundProcessor {
         error,
         message: "Critical automation failure",
       },
-    });
+    };
+    await this.automationManager.handleAutomationEvent(criticalEvent);
 
     // Log critical failure
     console.error(`Critical failure in ${job.type} job:`, error);

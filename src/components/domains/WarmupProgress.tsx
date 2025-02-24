@@ -1,5 +1,7 @@
 "use client";
 
+import styles from "./WarmupProgress.module.css";
+
 interface WarmupProgressProps {
   progress: number; // 0-100
   size?: "sm" | "md" | "lg";
@@ -31,8 +33,12 @@ const WarmupProgress = ({ progress, size = "md" }: WarmupProgressProps) => {
         )}`}
       >
         <div
-          className="progress-bar"
-          style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
+          className={`progress-bar ${styles.progressBar}`}
+          style={
+            {
+              "--progress-width": `${Math.min(100, Math.max(0, progress))}%`,
+            } as React.CSSProperties
+          }
         ></div>
       </div>
       <span className="text-sm font-medium">{Math.round(progress)}%</span>

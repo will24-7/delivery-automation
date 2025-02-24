@@ -1,0 +1,1428 @@
+Full API Documentation
+Smartlead's full API documentation for automation
+Introduction
+Welcome to Smartlead’s Developer documentation. You’re here because you want to automate the day lights out of your outbound.
+
+Smartlead’s API is very powerful and gives you flexibility to do almost everything you can do using the interface. You’ll find all that power on this page.
+
+So lets goooo!
+
+Getting Started & Authentication
+Step 1
+Head to your settings section. Click on the “Activate API button”
+
+Step 2
+If your plan has API access, your API key will be provided to you here. Do not share this with anyone. This is the key that acts as an identity to your account, think of it as your username & password combined.
+
+Step 3
+All our API’s point to our dedicated domain https://server.smartlead.ai/api/v1
+
+Using the API key in step 2 you can make requests to our system.
+
+You will need to attach the API key as a query string to all the requests listed below under the query parameter ?api_key=yourApiKey
+
+Rate limits
+Your API key is rate limited to 10 requests every 2 seconds
+
+API Reference 🛬 GET
+
+curl <https://server.smartlead.ai/api/v1/campaigns?api_key=API_KEY>
+References
+Campaign
+A campaign refers to an outreach sequence you want to run to a list of leads with certain conditions.
+
+Lead
+A lead in the API is the same as the lead in your app. They are the recipient of your email / the person you’re trying to contact. Aka the people you provide value to with the awesome products/services you have to sell to them
+
+Update
+Whenever you need to update a campaign or a lead
+
+Unsubscribe
+When someone no longer wants to hear from you, they unsubscribe, aka the no more touchy zone.
+
+Lead Status
+STARTED: The lead is scheduled to start and is yet to receive the 1st email in the sequence.
+COMPLETED: The lead has received all the emails in the campaign.
+BLOCKED: A lead is blocked when the email sent is bounced or if added in the global block list
+INPROGRESS: The lead has last received atleast one email in the sequence.
+Campaigns
+Get Campaign By Id
+This endpoint fetches a campaign based on its id.
+
+API Reference 🛬 GET
+
+curl <https://server.smartlead.ai/api/v1/campaigns/{campaign_id}?api_key={API_KEY}>
+The above request yields the below JSON response
+
+Response - JSON of campaign
+
+{
+	"id": 372
+	"user_id": 124
+	"created_at":  "2022-05-26T03:47:31.448094+00:00"
+	"updated_at": "2022-05-26T03:47:31.448094+00:00"
+	"status": "ACTIVE" // ENUM (DRAFTED/ACTIVE/COMPLETED/STOPPED/PAUSED)
+	"name": "My Epic Campaign"
+	"track_settings": "DONT_REPLY_TO_AN_EMAIL" // ENUM (DONT_EMAIL_OPEN/DONT_LINK_CLICK/DONT_REPLY_TO_AN_EMAIL)
+	"scheduler_cron_value": "{ tz: 'Australia/Sydney', days: [ 1, 2, 3, 4, 5 ], endHour: '23:00', startHour: '10:00' }"
+	"min_time_btwn_emails": 10 // minutes
+	"max_leads_per_day": 10
+	"stop_lead_settings": "REPLY_TO_AN_EMAIL" // ENUM (REPLY_TO_AN_EMAIL/CLICK_ON_A_LINK/OPEN_AN_EMAIL)
+	"unsubscribe_text": "Don't Contact Me",
+	"client_id": 23 // null if the campaign is not attached to a client,
+	"enable_ai_esp_matching": true, // leads will be matched with similar ESP mailboxes IF they exist, else normal sending occurs
+	"send_as_plain_text": true, // emails for this campaign are sent as plain text (parsing out any html)
+	"follow_up_percentage": 40% // the follow up percetange allocated - it is assumed 60% is new leads
+}
+URL Parameters
+Parameter Description campaign_id The ID of the campaign you want to fetch
+
+Create Campaign
+This endpoint creates a campaign
+
+API Reference 🛫 POST
+
+curl <https://server.smartlead.ai/api/v1/campaigns/create?api_key=${API_KEY}>
+--data { "name": "Test email campaign", "client_id": 22 // leave null if no client }
+The above request yields the below JSON response
+
+Response - JSON of campaign
+
+{
+    ok: true,
+    id: 3023,
+    name: "Test email campaign",
+    created_at: 2022-11-07T16:23:24.025929+00:00
+}
+Update Campaign Schedule
+This endpoint updates a campaign’s schedule.
+
+API Reference 🛫 POST
+
+curl <https://server.smartlead.ai/api/v1/campaigns/><campaign-id>/schedule?api_key=${API_KEY}
+--data {
+  "timezone": "America/Los_Angeles",
+  "days_of_the_week": [1],   // [0,1,2,3,4,5,6]
+  "start_hour": "01:11",         // "09:00"
+  "end_hour": "02:22",        // "18:00"
+  "min_time_btw_emails": 10, // time in minutes between emails
+  "max_new_leads_per_day": 20 // max new leads per day
+	"schedule_start_time": "2023-04-25T07:29:25.978Z" // Standard ISO format accepted
+}
+Please use the Timezones available here:
+
+Timezones
+
+The above request yields the below JSON response
+
+Response - JSON of campaign
+
+{
+  ok: true,
+}
+Error400 - BED REQUEST
+
+{"error":"Invalid timezone - {timezone}"}
+
+{"error":"Invalid start_hour - {startHour}"}
+
+{"error":"Invalid end_hour - {endHour}"}
+
+{"error":"startHour cannot be greater that endHour"}
+Update Campaign General Settings
+This endpoint updates a campaign’s general settings
+
+API Reference 🛫 POST
+
+curl <https://server.smartlead.ai/api/v1/campaigns/><campaign-id>/settings?api_key=${API_KEY}
+--data {
+  "track_settings": ["DONT_TRACK_EMAIL_OPEN"], // allowed values are -> DONT_TRACK_EMAIL_OPEN | DONT_TRACK_LINK_CLICK | DONT_TRACK_REPLY_TO_AN_EMAIL
+  "stop_lead_settings": "REPLY_TO_AN_EMAIL", // allowed values are -> CLICK_ON_A_LINK | OPEN_AN_EMAIL
+  "unsubscribe_text": "",
+  "send_as_plain_text": false,
+	"follow_up_percentage": 100, // max allowed 100 min allowed 0
+	"client_id": 33 // leave as null if not needed,
+	"enable_ai_esp_matching": true // by default is false
+}
+The above request yields the below JSON response
+
+Response - JSON of campaign
+
+{
+  ok: true,
+}
+Error400 - BED REQUEST
+
+Invalid track_settings value - {trackSettings}
+
+{"error":"Invalid stop_lead_settings value - {stopLeadSettings}"}
+Fetch Campaign Sequence By Campaign ID
+This endpoint fetches a campaign’s sequence data
+
+API Reference 🛬 GET
+
+curl <https://server.smartlead.ai/api/v1/campaigns/><campaign-id>/sequences?api_key=${API_KEY}
+The above request yields the below JSON response
+
+Response - JSON of <campaign_sequence>
+
+{
+   "id":8494,
+   "created_at":"2022-11-08T07:06:35.990Z",
+   "updated_at":"2022-11-08T07:34:03.667Z",
+   "email_campaign_id":3070,
+   "seq_number":1,
+   "subject":"",
+   "email_body":"",
+   "sequence_variants":[
+      {
+         "id":2535,
+         "created_at":"2022-11-08T07:06:36.002558+00:00",
+         "updated_at":"2022-11-08T07:34:04.026626+00:00",
+         "is_deleted":false,
+         "subject":"Subject",
+         "email_body":"<p>Hi<br><br>How are you?<br><br>Hope you're doing good</p>",
+         "email_campaign_seq_id":8494,
+         "variant_label":"A"
+      },
+      {
+         "id":2536,
+         "created_at":"2022-11-08T07:06:36.002558+00:00",
+         "updated_at":"2022-11-08T07:34:04.373866+00:00",
+         "is_deleted":false,
+         "subject":"Ema a",
+         "email_body":"<p>This is a new game a</p>",
+         "email_campaign_seq_id":8494,
+         "variant_label":"B"
+      },
+      {
+         "id":2537,
+         "created_at":"2022-11-08T07:06:36.002558+00:00",
+         "updated_at":"2022-11-08T07:34:04.721608+00:00",
+         "is_deleted":false,
+         "subject":"C emsil",
+         "email_body":"<p>Hiii C</p>",
+         "email_campaign_seq_id":8494,
+         "variant_label":"C"
+      }
+   ]
+}
+Save Campaign Sequence
+This endpoint saves a sequence within a campaign
+
+API Reference 🛫 POST
+
+curl <https://server.smartlead.ai/api/v1/campaigns/><campaign-id>/sequences?api_key=${API_KEY}
+--data {
+  "sequences": [
+    {
+      "id": 8494,
+      "seq_number": 1,
+      "seq_delay_details": {
+        "delay_in_days": 1
+      },
+      "seq_variants": [
+        {
+          "subject": "Subject",
+          "email_body": "<p>Hi<br><br>How are you?<br><br>Hope you're doing good</p>",
+          "variant_label": "A",
+          "id": 2535 // don't pass the ID key value pair when creating only pass for updating
+        },
+        {
+          "subject": "Ema a",
+          "email_body": "<p>This is a new game a</p>",
+          "variant_label": "B",
+          "id": 2536 // don't pass the ID key value pair when creating only pass for updating
+        },
+        {
+          "subject": "C emsil",
+          "email_body": "<p>Hiii C</p>",
+          "variant_label": "C",
+          "id": 2537 // don't pass the ID key value pair when creating only pass for updating
+        }
+      ]
+    },
+    {
+     "id": 8495,
+      "seq_number": 2,
+      "seq_delay_details": {
+        "delay_in_days": 1
+      },
+      "subject": "", // blank makes the follow up in the same thread
+      "email_body": "<p>Bump up right!</p>"
+    }
+  ]
+}
+The above request yields the below JSON response
+
+Response - JSON of success message
+
+{
+"ok": true,
+"data": "success"
+}
+Error404 - NOT FOUND
+
+{"error":"Campaign not found - Invalid campaign_id."}
+List all Campaigns
+This endpoint fetches all the campaigns in your account
+
+API Reference 🛬 GET
+
+curl <https://server.smartlead.ai/api/v1/campaigns?api_key={API_KEY}>
+The above request yields an array of JSONs like below
+
+Response - List of <email_campaign> schema
+
+[
+...,
+{
+	"id": 372,
+	"user_id": 124,
+	"created_at": "2022-05-26T03:47:31.448094+00:00",
+	"updated_at": "2022-05-26T03:47:31.448094+00:00",
+	"status": "ACTIVE", // ENUM (DRAFTED/ACTIVE/COMPLETED/STOPPED/PAUSED)
+	"name": "My Epic Campaign",
+	"track_settings": "DONT_REPLY_TO_AN_EMAIL", // ENUM (DONT_EMAIL_OPEN/DONT_LINK_CLICK/DONT_REPLY_TO_AN_EMAIL)
+	"scheduler_cron_value": "{ tz: 'Australia/Sydney', days: [ 1, 2, 3, 4, 5 ], endHour: '23:00', startHour: '10:00' }",
+	"min_time_btwn_emails": 10, // minutes
+	"max_leads_per_day": 10,
+	"stop_lead_settings": "REPLY_TO_AN_EMAIL", // ENUM (REPLY_TO_AN_EMAIL/CLICK_ON_A_LINK/OPEN_AN_EMAIL)
+	"unsubscribe_text": "Don't Contact Me",
+	"client_id": 22 // null if not attached to a client
+}
+,...]
+Delete Campaign
+This endpoint deletes the campaigns in your account
+
+API Reference 🛫 DELETE
+
+curl <https://server.smartlead.ai/api/v1/campaigns/{campaign_id}?api_key={API_KEY}>
+The above request yields an array of JSONs like below
+
+Response - Success Response
+
+{
+"ok": true
+}
+List all email accounts per campaign
+This endpoint fetches all the email accounts used for sending emails to leads in the campaign
+
+API Reference 🛬 GET
+
+curl <https://server.smartlead.ai/api/v1/campaigns/{campaign_id}/email-accounts?api_key={API_KEY}>
+The above request yields an array of JSONs like below
+
+Response - List of <email_account> schema
+
+[
+...,
+{
+	"id": 24
+	"created_at": "2022-05-26T03:47:31.448094+00:00"
+	"updated_at": "2022-05-26T03:47:31.448094+00:00"
+	"user_id": 123
+	"from_name": "Cristiano Rolando"
+	"from_email": "cristiano@mufc.com"
+	"username": "cristiano@mufc.com"
+	"smtp_host": "smtp.gmail.com"
+	"smtp_port": 993
+	"smtp_port_type": "SSL"
+	"message_per_day": 100
+	"different_reply_to_address": ""
+	"is_different_imap_account": false
+	"imap_username": "cristiano@mufc.com"
+	"imap_host": "imap.gmail.com"
+	"imap_port": 495
+	"imap_port_type": "SSL"
+	"signature": ""
+	"custom_tracking_domain": "<http://emailtracking.goldenboot.com>"
+	"bcc_email": ""
+	"is_smtp_success": true
+	"is_imap_success":true
+	"smtp_failure_error": ""
+	"imap_failure_error": ""
+	"type": "GMAIL" // ENUM (SMTP / GMAIL / ZOHO / OUTLOOK)
+	"daily_sent_count": 48 
+}
+,...]
+Add Email Account To A Campaign
+This endpoint lets you add an email account to a campaign
+
+API Reference 🛫 POST
+
+curl <https://server.smartlead.ai/api/v1/campaigns/><campaign-id>/email-accounts?api_key=${API_KEY}
+-- data {"email_account_ids": [2907]}
+The above request yields success/failure response
+
+Response - List of <results> schema
+
+{
+"ok": true,
+"result": [
+	  {
+		"id": 46417,
+		"email_campaign_id": 1353,
+		"email_account_id": 2907,
+		"updated_at": "2022-11-07T15:28:18.171Z"
+		}
+	],
+}
+Error400 - BED REQUEST
+
+{"error":"Email account id - 297 not allowed. Permission Error."}
+Error404 - NOT FOUND
+
+{"error":"Campaign not found - Invalid campaign_id."}
+Remove Email Account From A Campaign
+This endpoint lets you delete an email account from a campaign
+
+API Reference 🛫 DELETE
+
+curl <https://server.smartlead.ai/api/v1/campaigns/><campaign-id>/email-accounts?api_key=${API_KEY}
+-- data {"email_account_ids": [2907]}
+The above request yields success/failure response
+
+Response - List of <results> schema
+
+{
+"ok": true,
+"result": 1
+}
+Error400 - BED REQUEST
+
+{"error":"Email account id - 297 not allowed. Permission Error."}
+Error404 - NOT FOUND
+
+{"error":"Campaign not found - Invalid campaign_id."}
+Fetch all Campaigns using Lead ID
+This endpoint lets you fetch all the campaigns a Lead belongs to using the Lead ID
+
+API Reference 🛫 GET
+
+curl <https://server.smartlead.ai/api/v1/leads/><lead_id>/campaigns?api_key=${API_KEY}
+The above request yields the results schema below
+
+Response - List of <results> schema
+
+[
+		{
+        "id": 2911,
+        "status": "COMPLETED",
+        "name": "SL - High Intent Leads guide"
+    },
+    {
+        "id": 5055,
+        "status": "DRAFTED",
+        "name": ""
+    }
+]
+Fetch all email accounts associated to a user
+This endpoint fetches all the email accounts used for sending emails to leads in the campaign
+
+API Reference 🛬 GET
+
+curl <https://server.smartlead.ai/api/v1/email-accounts/?api_key=><API_KEY>&offset=0&limit=10
+
+// default value
+// offset = 0, limit = 100
+
+// min value
+// offset = 0
+
+// max value
+// limit = 100
+The above request yields an array of JSONs like below
+
+Response - List of <email_account> schema
+
+[
+...,
+{
+	"id": 24
+	"created_at": "2022-05-26T03:47:31.448094+00:00"
+	"updated_at": "2022-05-26T03:47:31.448094+00:00"
+	"user_id": 123
+	"from_name": "Cristiano Rolando"
+	"from_email": "cristiano@mufc.com"
+	"username": "cristiano@mufc.com"
+	"password": "potato"
+	"imap_password": "gogopotato"
+	"smtp_host": "smtp.gmail.com"
+	"smtp_port": 993
+	"smtp_port_type": "SSL"
+	"message_per_day": 100
+	"different_reply_to_address": ""
+	"is_different_imap_account": false
+	"imap_username": "cristiano@mufc.com"
+	"imap_host": "imap.gmail.com"
+	"imap_port": 495
+	"imap_port_type": "SSL"
+	"signature": ""
+	"custom_tracking_domain": "<http://emailtracking.goldenboot.com>"
+	"bcc_email": ""
+	"is_smtp_success": true
+	"is_imap_success":true
+	"smtp_failure_error": ""
+	"imap_failure_error": ""
+	"type": "GMAIL" // ENUM (SMTP / GMAIL / ZOHO / OUTLOOK)
+	"daily_sent_count": 48,
+	"client_id": 33 // null if it is not attached to a client
+	"warmup_details": {
+      "id": 99200,
+      "status": "INACTIVE",
+      "total_sent_count": 7,
+      "total_spam_count": 0,
+      "warmup_reputation": "100%"
+    }
+}
+,...]
+Create an Email Account
+This endpoint updates a specific email account based on the id provided in the JSON body
+
+API Reference 🛬 POST
+
+curl <https://server.smartlead.ai/api/v1/email-accounts/save?api_key=${API_KEY}>
+--data {
+  "id": 2849, // set null to create new email account
+  "from_name": "Ramesh",
+  "from_email": "ramesh@five2one.com.au",
+  "user_name": "ramesh@five2one.com.au",
+  "password": "gjfsvtyrqpemuqzf",
+  "smtp_host": "smtp.gmail.com",
+  "smtp_port": 465,
+  "imap_host": "imap.gmail.com",
+  "imap_port": 993,
+  "max_email_per_day": 100,
+  "custom_tracking_url": "",
+  "bcc": "",
+  "signature": "",
+  "warmup_enabled": false, // set true to enable warmup
+  "total_warmup_per_day": null, 
+  "daily_rampup": null, // set value to enable ramup
+  "reply_rate_percentage": null,
+	"client_id": null, // set value to assign to client id
+}
+The above request yields a JSON like below
+
+Response Success 200 OK
+
+{
+"ok":true,
+"message":"Email account added/updated successfully!",
+"emailAccountId":2849,
+"warmupKey": "apple-keyes"
+}
+Response Failure Bad Request 400
+
+Error 400 BAD_REQUEST - ACCOUNT_ALREADY_EXIST
+
+{
+ ok: false,
+message: 'Email account already added by other user.',
+errorCode: 'ACCOUNT_ALREADY_EXIST',
+ emailAccountId: null
+}
+{
+ ok: false,
+message: 'Email account already exist. Please pass id to update it',
+errorCode: 'ACCOUNT_ALREADY_EXIST',
+ emailAccountId: ${existingAccountId}
+}
+Error 404 NOT_FOUND - ACCOUNT_NOT_FOUND
+
+{
+ ok: false,
+  message: 'Email account not found!',
+ errorCode: 'ACCOUNT_NOT_FOUND',
+ emailAccountId: emailAccountData.id
+ }
+Error - ACCOUNT_VERIFICATION_FAILED
+
+{
+ ok: false,
+ message: 'Email account verification failed. Please verify account details.',
+ errorCode: 'ACCOUNT_VERIFICATION_FAILED',
+ emailAccountId: emailAccountData.id,
+ error: e.message
+}
+Update Email Account
+This endpoint updates an email account
+
+API Reference 🛬 POST
+
+curl <https://server.smartlead.ai/api/v1/email-accounts/><email_account_id>?api_key=<api_key>
+--data {
+  "max_email_per_day": 100,
+  "custom_tracking_url": "",
+  "bcc": "ramesh@five2one.com.au",
+  "signature": "Thanks,</br>Ramesh Kumar M",
+	"client_id": 22 // leave as null if this is not needed
+	"time_to_wait_in_mins": 3 // minimum integer time (in minutes) to wait before sending next email using this email account (leave null if not needed)
+}
+The above request yields a success response
+
+Response
+
+{"ok":true,"message":"Email account details updated successfully!","emailAccountId":10607}
+Fetch Email Account By ID
+This endpoint gets all email details by Account ID
+
+API Reference 🛫 GET
+
+curl <https://server.smartlead.ai/api/v1/email-accounts/><account_id>/?api_key=<API_KEY>
+The above request yields success/failure response
+
+Response
+
+{
+  "id": 106466,
+  "created_at": "2023-04-18T09:02:46.060Z",
+  "updated_at": "2023-05-30T06:06:20.587Z",
+  "user_id": 2,
+  "from_name": "Vaibhav",
+  "from_email": "vaibhav@five2one.engineering",
+  "username": "vaibhav@five2one.engineering",
+  "password": "xuF_aj4u",
+  "smtp_host": "smtp.zoho.com.au",
+  "smtp_port": 465,
+  "smtp_port_type": "SSL",
+  "message_per_day": 200,
+  "different_reply_to_address": "",
+  "is_different_imap_account": false,
+  "imap_username": "",
+  "imap_password": "",
+  "imap_host": "imap.zoho.com.au",
+  "imap_port": 993,
+  "imap_port_type": "SSL",
+  "signature": null,
+  "custom_tracking_domain": "",
+  "bcc_email": null,
+  "is_smtp_success": true,
+  "is_imap_success": true,
+  "smtp_failure_error": null,
+  "imap_failure_error": null,
+  "type": "SMTP",
+  "daily_sent_count": 0,
+  "client_id": null,
+  "warmup_details": {
+    "id": 99200,
+    "status": "INACTIVE",
+    "created_at": "2023-04-18T09:02:54.822507+00:00",
+    "reply_rate": 20,
+    "warmup_key_id": "brass-sleep",
+    "blocked_reason": null,
+    "total_sent_count": 7,
+    "total_spam_count": 0,
+    "warmup_max_count": 40,
+    "warmup_min_count": 3,
+    "is_warmup_blocked": false,
+    "max_email_per_day": 40,
+    "warmup_reputation": "100%"
+  }
+}
+Add/Update Warmup To Email Account
+This endpoint lets you add / update the warmup settings to an email account
+
+API Reference 🛫 POST
+
+curl <https://server.smartlead.ai/api/v1/email-accounts/><email_account_id>/warmup?api_key=<api_key>
+--data{
+  "warmup_enabled": true, // set false to disable warmup
+  "total_warmup_per_day": 35,
+  "daily_rampup": 2, // set this value to have daily ramup increase in warmup emails
+  "reply_rate_percentage": 38,
+	"warmup_key_id": "apple-juice" //string value if passed will update the custom warmup-key identifier
+}
+The above request yields success/failure response
+
+Response
+
+{"ok":true,"message":"Email warmup details updated successfully!","emailAccountId":10607, "warmupKey": "banan-apple"}
+Fetch Warmup Stats By Email Account ID
+This endpoint fetches stats for the last 7 days by the email account id
+
+API Reference 🛫 GET
+
+curl <https://server.smartlead.ai/api/v1/email-accounts/><email_account_id>/warmup-stats?api_key=<api_key>
+The above request yields success/failure response
+
+Response
+
+{
+  "id": 106466,
+  "sent_count": "0",
+  "spam_count": "0",
+  "inbox_count": "0",
+  "warmup_email_received_count": "0",
+  "stats_by_date": [
+    {
+      "id": 1,
+      "date": "2023-05-23",
+      "sent_count": 0,
+      "reply_count": 0,
+      "save_from_spam_count": 0
+    },
+    {
+      "id": 2,
+      "date": "2023-05-24",
+      "sent_count": 0,
+      "reply_count": 0,
+      "save_from_spam_count": 0
+    },
+    {
+      "id": 3,
+      "date": "2023-05-25",
+      "sent_count": 0,
+      "reply_count": 0,
+      "save_from_spam_count": 0
+    },
+    {
+      "id": 4,
+      "date": "2023-05-26",
+      "sent_count": 0,
+      "reply_count": 0,
+      "save_from_spam_count": 0
+    },
+    {
+      "id": 5,
+      "date": "2023-05-27",
+      "sent_count": 0,
+      "reply_count": 0,
+      "save_from_spam_count": 0
+    },
+    {
+      "id": 6,
+      "date": "2023-05-28",
+      "sent_count": 0,
+      "reply_count": 0,
+      "save_from_spam_count": 0
+    },
+    {
+      "id": 7,
+      "date": "2023-05-29",
+      "sent_count": 0,
+      "reply_count": 0,
+      "save_from_spam_count": 0
+    },
+    {
+      "id": 8,
+      "date": "2023-05-30",
+      "sent_count": 0,
+      "reply_count": 0,
+      "save_from_spam_count": 0
+    }
+  ]
+}
+List all leads by campaign id
+This endpoint fetches all the leads in a campaign using the campaign’s ID
+
+API Reference 🛬 GET
+
+curl <https://server.smartlead.ai/api/v1/campaigns/{campaign_id}/leads?api_key={API_KEY}&offset={number}&limit={number}>
+The above request yields an array of JSONs like below
+
+Response - List of <lead_result_data> schema
+
+{
+"total_leads": 823,
+"offset": 10,
+"limit": 100
+"data": [
+	{
+		"campaign_lead_map_id": 23
+		"status": "SENT"
+		"created_at": "2022-05-26T03:47:31.448094+00:00"
+		"lead": {
+			"id": 423
+			"first_name": "Cristiano"
+			"last_name": "Ronaldo"
+			"email": "cristiano@mufc.com"
+			"phone_number": 0239392029
+			"company_name": "Manchester United"
+			"website": "mufc.com"
+			"location": "London"
+			"custom_fields": {"Title": "Regional Manager", "First_Line": "Loved your recent post about remote work on Linkedin" }
+			"linkedin_profile": "<http://www.linkedin.com/in/cristianoronaldo>"
+			"company_url": "mufc.com"
+			"is_unsubscribed": false
+		}
+	}
+	]
+}
+Fetch lead categories
+This endpoint fetches all your categories
+
+API Reference 🛬 GET
+
+curl <https://server.smartlead.ai/api/v1/leads/fetch-categories?api_key=${API_KEY}>
+The above request yields an array of JSONs like below
+
+Response - List of <category_result_data> schema
+
+[
+	{
+	"id": 1,
+	"created_at": "2022-08-30T12:32:48.645Z",
+	"name": "Interested"
+	},
+	  {
+	"id": 2,
+	"created_at": "2022-08-30T12:32:55.159Z",
+	"name": "Meeting Request"
+	},
+	  {
+	"id": 3,
+	"created_at": "2022-08-30T12:33:02.286Z",
+	"name": "Not Interested"
+	},
+	  {
+	"id": 4,
+	"created_at": "2022-08-30T12:33:09.895Z",
+	"name": "Do Not Contact"
+	},
+	  {
+	"id": 5,
+	"created_at": "2022-08-30T12:33:16.204Z",
+	"name": "Information Request"
+	},
+	  {
+	"id": 6,
+	"created_at": "2022-08-30T12:33:22.323Z",
+	"name": "Out Of Office"
+	},
+	  {
+	"id": 7,
+	"created_at": "2022-08-30T12:33:28.519Z",
+	"name": "Wrong Person"
+	} 
+]
+Fetch lead by email address
+This endpoint fetches a lead’s data using the email address
+
+API Reference 🛬 GET
+
+curl <https://server.smartlead.ai/api/v1/leads/?api_key=${API_KEY}&email=${email}>
+The above request yields a JSON
+
+Response - <lead> schema
+
+{
+"id": "627657",
+"first_name": "Ramesh",
+"last_name": "Madanlal",
+"email": "m.rameshkumarjain@gmail.com",
+"created_at": "2022-08-29T06:15:31.513Z",
+"phone_number": "9042859097",
+"company_name": "Five2One",
+"website": "www.five2one.com.au",
+"location": "India",
+"custom_fields": {},
+"linkedin_profile": "",
+"company_url": "",
+"is_unsubscribed": false
+}
+Export data from a campaign
+This endpoint returns a CSV file of all leads from a campaign using the campaign’s ID
+
+API Reference 🛬 GET
+
+curl <https://server.smartlead.ai/api/v1/campaigns/{campaign_id}/leads-export?api_key={API_KEY}>
+The above request yields the csv format below
+
+Response <csv with columns>
+
+id - integer
+campaign_lead_map_id - integer
+status - text
+created_at - timestamp with time zone
+first_name - text
+last_name - text
+email - text
+phone_number - text
+company_name - text
+website - text
+location - text
+custom_fields - jsonb
+linkedin_profile - text
+company_url - text
+is_unsubscribed - boolean
+last_email_sequence_sent - integer
+is_interested - boolean
+open_count - integer
+click_count - integer
+reply_count- integer
+Fetch Lead Message History Based On Campaign
+This endpoint returns an array containing the entire message history of a lead specific to a campaign (Same data as in the master inbox)
+
+API Reference 🛬 GET
+
+curl <https://server.smartlead.ai/api/v1/campaigns/{campaign_id}/leads/{lead_id}/message-history?api_key={API_KEY}>
+The above request yields the csv format below
+
+Response JSON Array
+
+"history": [
+        {
+            "type": "SENT",
+						"message_id": <sw-uibo3i2hoi-ced32-23iuboufde-23oub@outlook.com>
+						"stats_id": "iuh2o3iuh3o2ih2-iuho3-edwhi92-oiho3-3223oihoi9uf
+            "time": "2023-03-13T07:44:12.978Z",
+            "email_body": "<div>Hi Christiano, lets do the SIIUUUU</div>",
+            "subject": "Quick question for you, Ronaldo"
+        },
+        {
+            "type": "SENT",
+						"message_id": <sw-uibo3i2hoi-ced32-23iuboufde-23oub@outlook.com>
+						"stats_id": "iuh2o3iuh3o2ih2-iuho3-edwhi92-oiho3-3223oihoi9uf
+            "time": "2023-03-15T07:50:56.673Z",
+            "email_body": "<div>Hi Christiano, it's okay if Messi was offerred more money</div>",
+            "subject": "RE: Quick question for you, Ronaldo"
+        },
+        {
+            "type": "REPLY",
+						"message_id": <sw-uibo3i2hoi-ced32-23iuboufde-23oub@outlook.com>
+						"stats_id": "iuh2o3iuh3o2ih2-iuho3-edwhi92-oiho3-3223oihoi9uf
+            "time": "2023-03-15T09:13:29.000Z",
+            "email_body": "<p>Yes, I was upset but I am fine, I have bugatti</p>"
+        }
+    ],
+    "from": "j_s@smartlead-outbound.com",
+    "to": "ronaldo.christiano@siu.io"
+Reply To Lead From Master Inbox via API
+This endpoint allows you to reply to a lead using the Master Inbox API
+
+API Reference 🛬 POST
+
+curl <https://server.smartlead.ai/api/v1/campaigns/${campaign_id}/reply-email-thread?api_key={API_KEY}>
+--body
+
+{
+// email_stats_id unique id per lead per email sequence per campaign (Can be fetched via email campaigns -> lead -> [message-history API](<https://help.smartlead.ai/API-Documentation-a0d223bdd3154a77b3735497aad9419f?pvs=21>))
+"email_stats_id": "a739fed0-c965-47e3-8f36-3e6d2805acec",
+
+//reply message email body    
+"email_body": "Hey just testing reply from master inbox!", 
+
+// message_id to which email will sent reply (Can be fetched via email campaigns -> lead -> [message-history API](<https://help.smartlead.ai/API-Documentation-a0d223bdd3154a77b3735497aad9419f?pvs=21>))   
+"reply_message_id": "<CAAfSCXmLWEUF1rc4Hc4D5d1m4+jORS+Sg-pCV2ErfGju+mUOOw@mail.gmail.com>", 
+
+// the time of the message to which the reply message is sent (Can be fetched via email campaigns -> lead -> [message-history API](<https://help.smartlead.ai/API-Documentation-a0d223bdd3154a77b3735497aad9419f?pvs=21>))
+"reply_email_time": "2023-06-19T08:10:35.000Z", 
+
+// the message to which the reply message is sent (Can be fetched via email campaigns -> lead -> [message-history API](<https://help.smartlead.ai/API-Documentation-a0d223bdd3154a77b3735497aad9419f?pvs=21>))
+"reply_email_body": "<html><head>\\r\\n<meta http-equiv=\\"Content-Type\\" content=\\"text/html; charset=utf-8\\"></head><body><div dir=\\"ltr\\"><div dir=\\"ltr\\">Interested</div><br><div class=\\"gmail_quote\\"><div dir=\\"ltr\\" class=\\"gmail_attr\\">On Mon, Jun 19, 2023 at 1:23 PM Ramesh Kumar &lt;<a href=\\"<mailto:m.rameshkumarjain@outlook.com>\\">m.rameshkumarjain@outlook.com</a>&gt; wrote:<br></div><blockquote class=\\"gmail_quote\\" style=\\"margin:0px 0px 0px 0.8ex; border-left:1px solid rgb(204,204,204); padding-left:1ex\\"><u></u><div><div>I'm testing webhook. Please click below -&nbsp;</div><div><br></div><div><a href=\\"<https://click.sleadtrack.com/link?messageId=%3Csw-a739fed0-c965-47e3-8f36-3e6d2805acec%40outlook.com%3E&amp;url=https%3A%2F%2Fwww.google.com%2F\\>" target=\\"_blank\\"><https://www.google.com/></a></div><div><br></div><div>Thanks,</div><div>Ramesh</div><p></p><p style=\\"font-size:12px\\"><a href=\\"<https://open.sleadtrack.com/unsubscribe?messageId=%3Csw-a739fed0-c965-47e3-8f36-3e6d2805acec@outlook.com%3E\\>" target=\\"_blank\\">unsubscribe here </a></p><img src=\\"<https://open.sleadtrack.com/image?messageId=%3Csw-a739fed0-c965-47e3-8f36-3e6d2805acec@outlook.com%3E\\>" alt=\\"\\" title=\\"\\" width=\\"1\\" height=\\"1\\" style=\\"display:none\\"> </div></blockquote></div><br clear=\\"all\\"><div><br></div><span class=\\"gmail_signature_prefix\\">-- </span><br><div dir=\\"ltr\\" class=\\"gmail_signature\\"><div dir=\\"ltr\\"><div><div dir=\\"ltr\\"><div>Thanks &amp; Regards,</div><div>Dinesh Kumar M.</div></div></div></div></div></div></body></html>",
+"cc": "m.rameshkumarjain@gmail.com",
+"bcc": "ramesh@five2one.com.au",
+"add_signature": true
+}
+The above request yields a response code
+
+Response Status Code Array
+
+200 OK: Email added to the queue, will be sent out soon!
+Fetch Campaign Statistics By Campaign Id
+This endpoint fetches campaign statistics using the campaign’s ID
+
+API Reference 🛬 GET
+
+curl <https://server.smartlead.ai/api/v1/campaigns/{campaign_id}/statistics?api_key={API_KEY}&offset={number}&limit={number}>
+
+// OPTIONAL QUERY PARAMS
+email_sequence_number={number} // 1,2,3,4
+email_status={string} // possible values -> 'opened' or 'clicked' or 'replied' or 'unsubscribed' or 'bounced'
+The above request yields an array of JSONs like below
+
+Response - List of <stats_result_data> schema
+
+{
+  "total_stats": "419",
+  "data": [
+    {
+      "lead_name": "Charles Newson",
+      "lead_email": "charles@newson.io",
+      "lead_category": null,
+      "sequence_number": 1,
+      "email_campaign_seq_id": 1178,
+      "seq_variant_id": 129,
+      "email_subject": "Smartlead - Charles",
+      "email_message": "<p>Hey Charles!</p>",
+      "sent_time": "2022-08-02T12:49:11.747Z",
+      "open_time": null,
+      "click_time": null,
+      "reply_time": null,
+      "open_count": 0,
+      "click_count": 0,
+      "is_unsubscribed": false,
+      "is_bounced": false
+    }
+  ],
+  "offset": 0,
+  "limit": 1
+}
+Fetch Campaign Statistics By Campaign Id And Date Range
+This endpoint fetches campaign statistics using the campaign’s ID
+
+API Reference 🛬 GET
+
+curl <https://server.smartlead.ai/api/v1/campaigns/3745/analytics-by-date?api_key={API_KEY}&start_date=2022-12-16&end_date=2022-12-23>
+The above request yields an array of JSONs like below
+
+Response - List of <stats_result_data> schema
+
+{
+	"id": 3745,
+	"user_id": 2,
+	"created_at": "2022-11-21T15:21:58.042Z",
+	"status": "ACTIVE",
+	"name": "Sai | General",
+	"start_date": "2022-12-16",
+	"end_date": "2022-12-23",
+	"sent_count": "4375",
+	"open_count": "745",
+	"click_count": "2",
+	"reply_count": "11",
+	"block_count": "0",
+	"total_count": "84777",
+	"drafted_count": "62392",
+	"bounce_count": "289",
+	"unsubscribed_count": "0"
+}
+Error response: (400 Bad Request)
+
+{
+"error": "Invalid start_date & end_date range. Date difference should be max of 30days."
+}
+{
+"error": "Invalid campaign id'"
+}
+Fetch campaign top level analytics
+This endpoint returns a campaigns top level analytics
+
+API Reference 🛬 GET
+
+curl <https://server.smartlead.ai/api/v1/campaigns/{campaign_id}/analytics?api_key=${API_KEY}>
+The above request yields a JSON with the below format
+
+Response <campaign_analytics> schema
+
+{
+"id": 979,
+"user_id": 288,
+"created_at": "2022-08-29T06:15:31.458Z",
+"status": "COMPLETED",
+"name": "",
+
+// email stats
+"sent_count": "14",
+"open_count": "14",
+"click_count": "0",
+"reply_count": "4",
+"block_count": "0",
+"total_count": "14",
+"drafted_count": "0",
+"bounce_count": "0",
+"unsubscribed_count": "0",
+
+// total no of sequences
+"sequence_count": "2",
+
+// tags
+"tags": [
+  {
+"id": 44,
+"name": "ramesh",
+"color": "#FCB1D0"
+}
+],
+
+// total unique lead open count
+"unique_open_count": "7",
+// total unique clicks
+"unique_click_count": "8",
+// total leads reached at this point
+"unique_sent_count": "10",
+// client id
+"client_id": 6,
+"client_name": "Alex James",
+"client_email": "alex@carrot.com"
+
+// parent campaign id (if request campaign-id is sub-sequence)
+"parent_campaign_id": null,
+
+// campaign lead stats
+"campaign_lead_stats": {
+"total": 8,
+"blocked": 0,
+"stopped": 0,
+"completed": 8,
+"inprogress": 0,
+"notStarted": 0
+}
+}
+Add leads to a campaign by ID
+This endpoint adds leads to a campaign using the campaign’s ID
+
+API Reference 🛫 POST
+
+curl <https://server.smartlead.ai/api/v1/campaigns/{campaign_id}/leads?api_key={API_KEY}>
+--data '{"lead_list": List<lead_input> *(max 100 leads)}'
+In the above List<lead_input> is an array of JSON objects that look like this:
+
+{
+  lead_list: [
+		{
+			"first_name": "Cristiano"
+			"last_name": "Ronaldo"
+			"email": "cristiano@mufc.com"
+			"phone_number": 0239392029
+			"company_name": "Manchester United"
+			"website": "mufc.com"
+			"location": "London"
+			"custom_fields": {"Title": "Regional Manager", "First_Line": "Loved your recent post about remote work on Linkedin" } // max 20 fields
+			"linkedin_profile": "<http://www.linkedin.com/in/cristianoronaldo>"
+			"company_url": "mufc.com"
+		}
+	],
+	"settings": {
+    "ignore_global_block_list": true, // true ignores leads uploaded in the lead list that are part of your global/client level block list
+    "ignore_unsubscribe_list": true, // true ignores leads uploaded in the lead list that have unsubsribed previously
+    "ignore_duplicate_leads_in_other_campaign": false // false allows leads to be added to this campaign even if they exist in another campaign
+  }
+}
+The above request yields the below JSON
+
+Response - <add_leads_response> schema
+
+{
+ "ok": true
+ "upload_count": 240
+ "total_leads": 400
+ "already_added_to_campaign": 200
+ "duplicate_count": 150 // duplicate emails
+ "invalid_email_count": 40 // invalid formatted emails
+ "unsubscribed_leads": 10 // leads that previously unsubscribed from your outreach
+}
+Resume Lead By Campaign ID
+This endpoint resumes a lead from a campaign based on the lead and campaign ID
+
+API Reference 🛫 POST
+
+curl <https://server.smartlead.ai/api/v1/campaigns/{campaign_id}/leads/{lead_id}/resume?api_key={API_KEY}>
+--body {“resume_lead_with_delay_days”: 10} // resume_lead_with_delay_days can be null and defaults to 0
+The above request yields a success/failure JSON
+
+Response - <resume_lead_response> schema
+
+{"ok":true,"data":"success"}
+Pause Lead By Campaign ID
+This endpoint pauses a lead from a campaign based on the lead and campaign ID
+
+API Reference 🛫 POST
+
+curl <https://server.smartlead.ai/api/v1/campaigns/{campaign_id}/leads/{lead_id}/pause?api_key={API_KEY}>
+The above request yields a success/failure JSON
+
+Response - <pause_lead_response> schema
+
+{"ok":true,"data":"success"}
+Delete Lead By Campaign ID
+This endpoint deletes a lead from a campaign based on the lead and campaign ID
+
+API Reference 🛫 DELETE
+
+curl <https://server.smartlead.ai/api/v1/campaigns/{campaign_id}/leads/{lead_id}?api_key={API_KEY}>
+The above request yields a success/failure JSON
+
+Response - <delete_lead_response> schema
+
+{
+	"ok": true
+}
+Unsubscribe/Pause Lead From Campaign
+This endpoint unsubscribe a lead from a campaign based on the lead and campaign ID. Think of this as a “pause”
+
+API Reference 🛫 POST
+
+curl <https://server.smartlead.ai/api/v1/campaigns/${campaign_id}/leads/${lead_id}/unsubscribe?api_key={API_KEY}>
+The above request yields a success/failure JSON
+
+Response - <unsubscribe_lead_repsonse> schema
+
+{
+	"ok": true
+}
+Unsubscribe Lead From All Campaigns
+This endpoint unsubscribe a lead from all campaigns the lead belongs to and prevents it from being added to any future campaigns
+
+API Reference 🛫 POST
+
+curl <https://server.smartlead.ai/api/v1/leads/${lead_id}/unsubscribe?api_key=${API_KEY}>
+The above request yields a success/failure JSON
+
+Response - <unsubscribe_lead_global_repsonse> schema
+
+200 OK {"ok":true}
+
+404 NOT FOUND {"error": "Lead not found - Invalid lead_id."}
+Add Lead/Domain to Globlal Block List
+This endpoint adds a lead/domain to the global block list
+
+API Reference 🛫 POST
+
+curl <https://server.smartlead.ai/api/v1/leads/add-domain-block-list?api_key=API_KEY>
+--data {
+	"domain_block_list": ["ramesh+1001@five2one.com.au", "apple.com"],
+	"client_id": null // add client_id number if the domains/emails being added is client specific
+}
+The above request yields a success/failure JSON
+
+Response - <unsubscribe_lead_repsonse> schema
+
+{"uploadCount":1,"totalDomainAdded":1}
+Update lead using the Lead ID
+This endpoint lets you update a lead using the lead ID
+
+API Reference 🛫 POST
+
+curl <https://server.smartlead.ai/api/v1/campaigns/{campaign_id}/leads/{lead_id}?api_key={API_KEY}>
+--data <lead_input>
+In the above <lead_input> is a JSON object that look like this:
+
+	{
+		"first_name": "Cristiano"
+		"last_name": "Ronaldo"
+		"email": "cristiano@mufc.com"
+		"phone_number": 0239392029
+		"company_name": "Manchester United"
+		"website": "mufc.com"
+		"location": "London"
+		"custom_fields": {"Title": "Regional Manager", "First_Line": "Loved your recent post about remote work on Linkedin" } // max 20 fields
+		"linkedin_profile": "<http://www.linkedin.com/in/cristianoronaldo>"
+		"company_url": "mufc.com"
+	}
+The above request yields a JSON like below
+
+Response - <update_lead_repsonse> schema
+
+{
+	"ok": true
+}
+Update a lead’s category based on their campaign
+This endpoint lets you update your leads category based on the campaign they belong to
+
+API Reference 🛫 POST
+
+curl <https://server.smartlead.ai/api/v1/campaigns/${campaign_id}/leads/${lead_id}/category?api_key=${API_KEY}>
+--data {
+  "category_id": 143,
+	"pause_lead": true // pause_lead would default to false if not added
+}
+The above request yields a JSON like below
+
+Response - <update_category_repsonse> schema
+
+{
+	"ok": true
+}
+Patch campaign status
+This endpoint changes the status of a campaign
+
+API Reference 🛫 POST
+
+curl <https://server.smartlead.ai/api/v1/campaigns/${<campaign_id>}/status?api_key={API_KEY}>
+--data '{"status": "PAUSED"}' // ENUM (PAUSED / STOPPED / START)
+The above request yields a success/failure JSON
+
+Response - <update_campaign_status_repsonse> schema
+
+{
+	"ok": true
+}
+Fetch Webhooks By Campaign ID
+This endpoint lets fetch all the webhooks associated to a campaign using the campaign ID
+
+API Reference 🛬 GET
+
+curl <https://server.smartlead.ai/api/v1/campaigns/><campaign-id>/webhooks?api_key=${API_KEY}
+The above request yields success/failure response
+
+Response - List of <campaign_webhook>
+
+{
+	"id": 44,
+	"name": "Dinesh Testing lead category webhook",
+	"created_at": "2022-09-14T05:08:55.018Z",
+	"updated_at": "2022-10-31T11:44:35.812Z",
+	"webhook_url": "<https://webhook.site/8222f684-0cf6-43ac-9360-28227fc36d32>",
+	"email_campaign_id": 2180,
+	"event_types": [
+	  "LEAD_CATEGORY_UPDATED"
+	],
+	"categories": [
+	  "Interested"
+	]
+}
+Possible webhook event types
+
+WEBHOOK_EVENT_TYPE: {
+    EMAIL_SENT: 'EMAIL_SENT',
+    EMAIL_OPEN: 'EMAIL_OPEN',
+    EMAIL_LINK_CLICK: 'EMAIL_LINK_CLICK',
+    EMAIL_REPLY: 'EMAIL_REPLY',
+    LEAD_UNSUBSCRIBED: 'LEAD_UNSUBSCRIBED',
+    LEAD_CATEGORY_UPDATED: 'LEAD_CATEGORY_UPDATED'
+  }
+Error404 - NOT FOUND
+
+{"error":"Campaign not found - Invalid campaign_id."}
+Add / Update Campaign Webhook
+This endpoint add’s a webhook to a campaign or alternatively lets you update a webhook
+
+To add a webhook please leave the “id” empty, or as null
+
+API Reference 🛫 POST
+
+curl <https://server.smartlead.ai/api/v1/campaigns/><campaign-id>/webhooks?api_key=${API_KEY}
+--data {
+	  "id": 217, // set id to null to create a new webhook
+	  "name": "Ramesh testing 1",
+	  "webhook_url": "<https://webhook.site/8222f684-0cf6-43ac-9360-28227fc36d32>",
+	  "event_types": [
+	  "LEAD_CATEGORY_UPDATED"
+	],
+	"categories": [
+	  "Interested"
+	],
+}
+The above request yields success/failure response
+
+Response - <campaign_webhook>
+
+{
+	"ok": true,
+	"name": "Dinesh Testing lead category webhook",
+	"webhook_url": "<https://webhook.site/8222f684-0cf6-43ac-9360-28227fc36d32>",
+	"email_campaign_id": 2180,
+	"event_types": [
+	  "LEAD_CATEGORY_UPDATED"
+	],
+	"categories": [
+	  "Interested"
+	],
+}
+Error400 - BAD REQUEST
+
+{"error":"Invalid webhook_url - {webhookUrl}"}
+
+{"error":"Invalid event_types - {eachEventType}"}
+
+{"error":"Invalid category - {eachCategory}"}
+Delete Campaign Webhook
+This endpoint deletes a webhook from a campaign
+
+API Reference 🛫 DELETE
+
+curl <https://server.smartlead.ai/api/v1/campaigns/><campaign-id>/webhooks?api_key=${API_KEY}
+--data {
+	 "id": 217 //webhook ID
+}
+The above request yields success/failure response
+
+Response - <campaign_webhook>
+
+{
+"ok": true
+}
+Add Client To System (Whitelabel or not)
+This endpoint lets you add new clients to your system
+
+API Reference 🛫 POST
+
+curl <https://server.smartlead.ai/api/v1/client/save?api_key={API_KEY}>
+--data {
+  "name": "Ramesh Kumar",
+  "email": "ramesh+15@five2one.com.au",
+  "permission": [
+    "reply_master_inbox"
+  ],
+  "logo": "SmartGen Outreach",
+  "logo_url": null,
+  "password": "Test1234!"
+}
+Note**to provide full access permission set →
+
+"permission": [ "full_access" ]
+The above request yields success/failure response
+
+Response
+
+{
+	"ok": true,
+	"clientId": 299,
+	"name": "Ramesh Kumar",
+	"email": "ramesh+15@five2one.com.au",
+	"password": "Test1234!"
+}
+Fetch all clients
+This endpoint lets you fetch all clients attached to your account
+
+API Reference 🛫 GET
+
+GET <https://server.smartlead.ai/api/v1/client/?api_key={API_KEY}>
+The above request yields success/failure response
+
+Response
+
+[{
+"id": 6,
+"name": "Ramesh Cleint",
+"email": "ramesh+client@five2one.com.au",
+"uuid": "1e19fcb7-6651-444a-8495-e1a4bda16611",
+"created_at": "2022-08-25T04:24:04.656Z",
+"user_id": 288,
+"logo": null,
+"logo_url": null,
+"client_permision": {
+"permission": [
+  "reply_master_inbox"
+],
+"retricted_category": [],
+}
+},
+  {
+"id": 298,
+"name": "Ramesh Kumar",
+"email": "ramesh+14@five2one.com.au",
+"uuid": "d86864b6-c6aa-4ca8-970c-01be63494322",
+"created_at": "2022-11-25T14:29:04.742Z",
+"user_id": 288,
+"logo": "SmartGen Outreach",
+"logo_url": "",
+"client_permision": {
+"permission": [
+  "reply_master_inbox"
+],
+"retricted_category": [],
+}
+}]
+Reconnect failed email accounts
+This endpoint lets you bulk reconnect disconnected email accounts.
+
+Rate limited to 3 times in a 24 hour period
+
+API Reference 🛫 POST
+
+curl <https://server.smartlead.ai/api/v1/email-accounts/reconnect-failed-email-accounts?api_key={API_KEY}>
+--data{}
+The above request yields success/failure response
+
+Response
+
+{ ok: true, message: 'Email account(s) added to the queue to reconnect. We will send you an email once completed.' }
+Error - NOT_ACCEPTABLE
+
+{ ok: true, message: 'Bulk reconnect API cannot be consumed more than 3 times a day' }
+Error - Not Found
+
+{ ok: true, message: 'No failed email account found!' }

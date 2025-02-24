@@ -1,0 +1,4259 @@
+openapi: 3.0.3
+info:
+  title: 'EmailGuard Docs'
+  description: ''
+  version: 1.0.0
+servers:
+  -
+    url: 'https://app.emailguard.io'
+paths:
+  /api/v1/login:
+    post:
+      summary: Login
+      operationId: login
+      description: "This endpoint allows users to authenticate by providing your login credentials (email and password).\n\nUpon successful authentication, the endpoint returns a JSON response containing the authentication token\nto be used for accessing protected resources."
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    token: 5|Hlk779H8RZRYW8uO7HqswERgBl4KWce31qEnSl4k31a56d9a
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        example: 5|Hlk779H8RZRYW8uO7HqswERgBl4KWce31qEnSl4k31a56d9a
+        422:
+          description: failure
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'The provided credentials are incorrect.'
+                properties:
+                  message:
+                    type: string
+                    example: 'The provided credentials are incorrect.'
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: 'Your email.'
+                  example: john@doe.com
+                password:
+                  type: string
+                  description: 'Your password.'
+                  example: mypassword
+              required:
+                - email
+                - password
+      security: []
+  /api/v1/user:
+    get:
+      summary: 'Account Details'
+      operationId: accountDetails
+      description: "This endpoint retrieves the details of the authenticated user.\n\nThe user must provide a valid authentication token in the request header to access this endpoint."
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    name: 'Jonh Doe'
+                    email: john@doe.com
+                    team:
+                      name: "John Doe's Team"
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        example: 'Jonh Doe'
+                      email:
+                        type: string
+                        example: john@doe.com
+                      team:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            example: "John Doe's Team"
+      tags:
+        - 'Account management'
+  /api/v1/user/profile:
+    put:
+      summary: 'Update Profile'
+      operationId: updateProfile
+      description: "This endpoint allows the authenticated user to update their profile information, specifically their name.\n\nThe user must provide a valid authentication token in the request header to access this endpoint."
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    name: 'Doe John'
+                    email: john@doe.com
+                    team:
+                      name: "John Doe's Team"
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        example: 'Doe John'
+                      email:
+                        type: string
+                        example: john@doe.com
+                      team:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            example: "John Doe's Team"
+      tags:
+        - 'Account management'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'The new name to update.'
+                  example: '"Doe John"'
+              required:
+                - name
+  /api/v1/user/password:
+    put:
+      summary: 'Update Password'
+      operationId: updatePassword
+      description: "This endpoint allows the authenticated user to update their password.\n\nThe user must provide a valid authentication token in the request header to access this endpoint."
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    success: true
+                    message: 'Successfully updated your profile password'
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+                      message:
+                        type: string
+                        example: 'Successfully updated your profile password'
+      tags:
+        - 'Account management'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                current_password:
+                  type: string
+                  description: 'Your current password.'
+                  example: password
+                password:
+                  type: string
+                  description: 'Your new password.'
+                  example: new-password
+                password_confirmation:
+                  type: string
+                  description: 'Your new password repeated.'
+                  example: new-password
+              required:
+                - current_password
+                - password
+                - password_confirmation
+  /api/v1/user/logout:
+    post:
+      summary: Logout
+      operationId: logout
+      description: "This endpoint logs out the authenticated user by invalidating their current authentication token.\n\nThe user must provide a valid authentication token in the request header to access this endpoint."
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    success: true
+                    message: 'Successfully logged out'
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+                      message:
+                        type: string
+                        example: 'Successfully logged out'
+      tags:
+        - 'Account management'
+  /api/v1/workspaces:
+    get:
+      summary: 'User Workspaces'
+      operationId: userWorkspaces
+      description: "This endpoint retrieves all workspaces for the authenticated user.\n\nThe user must provide a valid authentication token in the request header to access this endpoint."
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "{\n   \"data\": [\n       {\n          \"uuid\": \"9c97b8f7-7aac-4bae-8da6-9db5991ec2ae\",\n          \"name\": \"John Doe's First Team\",\n          \"remaining_monthly_email_verification_credits\": 30,\n          \"total_monthly_email_verification_credits\": 50,\n          \"remaining_email_verification_credits\": 50,\n          \"total_email_verification_credits\": 100,\n          \"remaining_email_accounts\": 1,\n          \"total_email_accounts\": 100,\n          \"remaining_domains\": 1,\n          \"total_domains\": 1,\n          \"remaining_inbox_placement_tests\": 5,\n          \"total_inbox_placement_tests\": 5,\n          \"remaining_email_tests\": 10,\n          \"total_email_tests\": 10,\n          \"remaining_content_spam_checks\": 20,\n          \"total_content_spam_checks\": 20,\n          \"remaining_hosted_domain_redirects\": 0,\n          \"total_hosted_domain_redirects\": 0\n       },\n       {\n          \"uuid\": \"9c97b8f7-7aac-4bae-8da6-9db5991ec2ae\",\n          \"name\": \"John Doe's Second Team\",\n          \"remaining_monthly_email_verification_credits\": 100,\n          \"total_monthly_email_verification_credits\": 100,\n          \"remaining_email_verification_credits\": 50,\n          \"total_email_verification_credits\": 100,\n          \"remaining_email_accounts\": 1,\n          \"total_email_accounts\": 100,\n          \"remaining_domains\": 1,\n          \"total_domains\": 1,\n          \"remaining_inbox_placement_tests\": 5,\n          \"total_inbox_placement_tests\": 5,\n          \"remaining_email_tests\": 10,\n          \"total_email_tests\": 10,\n          \"remaining_content_spam_checks\": 20,\n          \"total_content_spam_checks\": 20,\n          \"remaining_hosted_domain_redirects\": 0,\n          \"total_hosted_domain_redirects\": 0\n       },\n   ]\n}"
+      tags:
+        - Workspaces
+    post:
+      summary: 'Create Workspace'
+      operationId: createWorkspace
+      description: "This endpoint allows the authenticated user to create a new workspace.\n\nThe user must provide a valid authentication token in the request header\nand the details of the new workspace in the request body."
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "{\n   \"data\": {\n          \"name\": \"John Doe's New Team\",\n          \"remaining_monthly_email_verification_credits\": 30,\n          \"total_monthly_email_verification_credits\": 50,\n          \"remaining_email_verification_credits\": 50,\n          \"total_email_verification_credits\": 100,\n          \"remaining_email_accounts\": 1,\n          \"total_email_accounts\": 100,\n          \"remaining_domains\": 1,\n          \"total_domains\": 1,\n          \"remaining_inbox_placement_tests\": 5,\n          \"total_inbox_placement_tests\": 5,\n          \"remaining_email_tests\": 10,\n          \"total_email_tests\": 10,\n          \"remaining_content_spam_checks\": 20,\n          \"total_content_spam_checks\": 20,\n          \"remaining_hosted_domain_redirects\": 0,\n          \"total_hosted_domain_redirects\": 0\n   }\n* }"
+      tags:
+        - Workspaces
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: b
+              required:
+                - name
+  /api/v1/workspaces/current:
+    get:
+      summary: 'Workspace Details'
+      operationId: workspaceDetails
+      description: "This endpoint retrieves the details of the authenticated user's current workspace.\n\nThe user must provide a valid authentication token in the request header to access this endpoint."
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    uuid: 9c97b8f7-7aac-4bae-8da6-9db5991ec2ae
+                    name: "John Doe's Team"
+                    remaining_monthly_email_verification_credits: 30
+                    total_monthly_email_verification_credits: 50
+                    remaining_email_verification_credits: 50
+                    total_email_verification_credits: 100
+                    remaining_email_accounts: 1
+                    total_email_accounts: 100
+                    remaining_domains: 1
+                    total_domains: 1
+                    remaining_inbox_placement_tests: 5
+                    total_inbox_placement_tests: 5
+                    remaining_email_tests: 10
+                    total_email_tests: 10
+                    remaining_content_spam_checks: 20
+                    total_content_spam_checks: 20
+                    remaining_hosted_domain_redirects: 0
+                    total_hosted_domain_redirects: 0
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                        example: 9c97b8f7-7aac-4bae-8da6-9db5991ec2ae
+                      name:
+                        type: string
+                        example: "John Doe's Team"
+                      remaining_monthly_email_verification_credits:
+                        type: integer
+                        example: 30
+                      total_monthly_email_verification_credits:
+                        type: integer
+                        example: 50
+                      remaining_email_verification_credits:
+                        type: integer
+                        example: 50
+                      total_email_verification_credits:
+                        type: integer
+                        example: 100
+                      remaining_email_accounts:
+                        type: integer
+                        example: 1
+                      total_email_accounts:
+                        type: integer
+                        example: 100
+                      remaining_domains:
+                        type: integer
+                        example: 1
+                      total_domains:
+                        type: integer
+                        example: 1
+                      remaining_inbox_placement_tests:
+                        type: integer
+                        example: 5
+                      total_inbox_placement_tests:
+                        type: integer
+                        example: 5
+                      remaining_email_tests:
+                        type: integer
+                        example: 10
+                      total_email_tests:
+                        type: integer
+                        example: 10
+                      remaining_content_spam_checks:
+                        type: integer
+                        example: 20
+                      total_content_spam_checks:
+                        type: integer
+                        example: 20
+                      remaining_hosted_domain_redirects:
+                        type: integer
+                        example: 0
+                      total_hosted_domain_redirects:
+                        type: integer
+                        example: 0
+      tags:
+        - Workspaces
+  /api/v1/workspaces/switch-workspace:
+    post:
+      summary: 'Switch Workspace'
+      operationId: switchWorkspace
+      description: "This endpoint allows the authenticated user to switch to a different workspace.\n\nThe user must provide a valid authentication token in the request header\nand the ID of the target workspace in the request body to access this endpoint."
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    uuid: 9c97b8f7-7aac-4bae-8da6-9db5991ec2ae
+                    name: "John Doe's Second Team"
+                    remaining_monthly_email_verification_credits: 30
+                    total_monthly_email_verification_credits: 50
+                    remaining_email_verification_credits: 50
+                    total_email_verification_credits: 100
+                    remaining_email_accounts: 1
+                    total_email_accounts: 100
+                    remaining_domains: 1
+                    total_domains: 1
+                    remaining_inbox_placement_tests: 5
+                    total_inbox_placement_tests: 5
+                    remaining_email_tests: 10
+                    total_email_tests: 10
+                    remaining_content_spam_checks: 20
+                    total_content_spam_checks: 20
+                    remaining_hosted_domain_redirects: 0
+                    total_hosted_domain_redirects: 0
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                        example: 9c97b8f7-7aac-4bae-8da6-9db5991ec2ae
+                      name:
+                        type: string
+                        example: "John Doe's Second Team"
+                      remaining_monthly_email_verification_credits:
+                        type: integer
+                        example: 30
+                      total_monthly_email_verification_credits:
+                        type: integer
+                        example: 50
+                      remaining_email_verification_credits:
+                        type: integer
+                        example: 50
+                      total_email_verification_credits:
+                        type: integer
+                        example: 100
+                      remaining_email_accounts:
+                        type: integer
+                        example: 1
+                      total_email_accounts:
+                        type: integer
+                        example: 100
+                      remaining_domains:
+                        type: integer
+                        example: 1
+                      total_domains:
+                        type: integer
+                        example: 1
+                      remaining_inbox_placement_tests:
+                        type: integer
+                        example: 5
+                      total_inbox_placement_tests:
+                        type: integer
+                        example: 5
+                      remaining_email_tests:
+                        type: integer
+                        example: 10
+                      total_email_tests:
+                        type: integer
+                        example: 10
+                      remaining_content_spam_checks:
+                        type: integer
+                        example: 20
+                      total_content_spam_checks:
+                        type: integer
+                        example: 20
+                      remaining_hosted_domain_redirects:
+                        type: integer
+                        example: 0
+                      total_hosted_domain_redirects:
+                        type: integer
+                        example: 0
+      tags:
+        - Workspaces
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  description: ''
+                  example: 3ea5af56-5486-3d5a-8dda-b75080f7c99f
+              required:
+                - uuid
+  '/api/v1/workspaces/{team_id}':
+    put:
+      summary: 'Update Workspace'
+      operationId: updateWorkspace
+      description: "This endpoint allows the authenticated user to update their workspace information,\nspecifically the workspace name.\n\nThe user must provide a valid authentication token in the request header\nand the ID of the target workspace, along with the details of the new workspace\nin the request body to access this endpoint."
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    name: 'J.D Workspace'
+                    remaining_monthly_email_verification_credits: 30
+                    total_monthly_email_verification_credits: 50
+                    remaining_email_verification_credits: 50
+                    total_email_verification_credits: 100
+                    remaining_email_accounts: 1
+                    total_email_accounts: 100
+                    remaining_domains: 1
+                    total_domains: 1
+                    remaining_inbox_placement_tests: 5
+                    total_inbox_placement_tests: 5
+                    remaining_email_tests: 10
+                    total_email_tests: 10
+                    remaining_content_spam_checks: 20
+                    total_content_spam_checks: 20
+                    remaining_hosted_domain_redirects: 0
+                    total_hosted_domain_redirects: 0
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        example: 'J.D Workspace'
+                      remaining_monthly_email_verification_credits:
+                        type: integer
+                        example: 30
+                      total_monthly_email_verification_credits:
+                        type: integer
+                        example: 50
+                      remaining_email_verification_credits:
+                        type: integer
+                        example: 50
+                      total_email_verification_credits:
+                        type: integer
+                        example: 100
+                      remaining_email_accounts:
+                        type: integer
+                        example: 1
+                      total_email_accounts:
+                        type: integer
+                        example: 100
+                      remaining_domains:
+                        type: integer
+                        example: 1
+                      total_domains:
+                        type: integer
+                        example: 1
+                      remaining_inbox_placement_tests:
+                        type: integer
+                        example: 5
+                      total_inbox_placement_tests:
+                        type: integer
+                        example: 5
+                      remaining_email_tests:
+                        type: integer
+                        example: 10
+                      total_email_tests:
+                        type: integer
+                        example: 10
+                      remaining_content_spam_checks:
+                        type: integer
+                        example: 20
+                      total_content_spam_checks:
+                        type: integer
+                        example: 20
+                      remaining_hosted_domain_redirects:
+                        type: integer
+                        example: 0
+                      total_hosted_domain_redirects:
+                        type: integer
+                        example: 0
+      tags:
+        - Workspaces
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'The new workspace name.'
+                  example: 'New name'
+              required:
+                - name
+    parameters:
+      -
+        in: path
+        name: team_id
+        description: 'The ID of the workspace.'
+        example: 18
+        required: true
+        schema:
+          type: integer
+  '/api/v1/workspaces/delete/{team_id}':
+    delete:
+      summary: 'Delete Workspace'
+      operationId: deleteWorkspace
+      description: "This endpoint allows the authenticated user to delete their workspace.\n\nThe user must provide a valid authentication token in the request header\nand the ID of the target workspace."
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    success: true
+                    message: "Successfully deleted John Doe's Team"
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+                      message:
+                        type: string
+                        example: "Successfully deleted John Doe's Team"
+      tags:
+        - Workspaces
+    parameters:
+      -
+        in: path
+        name: team_id
+        description: 'The ID of the workspace.'
+        example: 2
+        required: true
+        schema:
+          type: integer
+  /api/v1/workspaces/invite-members:
+    post:
+      summary: 'Invite Team Member'
+      operationId: inviteTeamMember
+      description: "This endpoint allows the authenticated user to invite a new member to their team.\n\nThe user must provide a valid authentication token in the request header\nand the email and role of the new team member in the request body."
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    success: true
+                    message: 'Successfully invited example@example.com'
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+                      message:
+                        type: string
+                        example: 'Successfully invited example@example.com'
+      tags:
+        - Workspaces
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: 'The email of the new team member.'
+                  example: example@example.com
+                role:
+                  type: string
+                  description: 'The role of the new team member.'
+                  example: '1'
+              required:
+                - email
+                - role
+  '/api/v1/workspaces/accept/{team_invitation_uuid}':
+    get:
+      summary: 'Accept Workspace Invitation'
+      operationId: acceptWorkspaceInvitation
+      description: "This endpoint allows the user to accept an invitation to join a workspace.\n\nThe user must provide a valid authentication token in the request header\nand the ID of the workspace invitation."
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    success: true
+                    message: 'Successfully accepted the invitation'
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+                      message:
+                        type: string
+                        example: 'Successfully accepted the invitation'
+      tags:
+        - Workspaces
+    parameters:
+      -
+        in: path
+        name: team_invitation_uuid
+        description: ''
+        example: 46b47e8f-875c-3f56-8ec3-563825bdfe3a
+        required: true
+        schema:
+          type: string
+      -
+        in: path
+        name: team_invitation_id
+        description: 'The ID of the team invitation.'
+        example: 3
+        required: true
+        schema:
+          type: integer
+  '/api/v1/workspaces/members/{user_id}':
+    put:
+      summary: 'Update Workspace Member'
+      operationId: updateWorkspaceMember
+      description: "This endpoint allows the authenticated user to update the role of a workspace member.\n\nThe user must provide a valid authentication token in the request header\nand the ID of the workspace member and the new role in the request body."
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    success: true
+                    message: 'Successfully updated team member John Doe role'
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+                      message:
+                        type: string
+                        example: 'Successfully updated team member John Doe role'
+      tags:
+        - Workspaces
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  description: 'The new role of the team member.'
+                  example: admin
+              required:
+                - role
+    delete:
+      summary: 'Delete Workspace Member'
+      operationId: deleteWorkspaceMember
+      description: "This endpoint allows the authenticated user to remove a workspace member.\n\nThe user must provide a valid authentication token in the request header\nand the ID of the workspace member."
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    success: true
+                    message: 'Successfully deleted team member John Doe'
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+                      message:
+                        type: string
+                        example: 'Successfully deleted team member John Doe'
+      tags:
+        - Workspaces
+    parameters:
+      -
+        in: path
+        name: user_id
+        description: 'The ID of the team member.'
+        example: 5
+        required: true
+        schema:
+          type: integer
+  /api/v1/domains:
+    get:
+      summary: 'List Domains'
+      operationId: listDomains
+      description: 'Retrieve a collection of domains associated with the authenticated user.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "{\n   \"data\": [\n       {\n           \"name\": \"example.com\",\n           \"ip\": \"192.158.1.38\",\n       },\n       {\n           \"name\": \"anotherdomain.com\",\n           \"ip\": \"193.258.1.38\",\n       }\n   ]\n}"
+      tags:
+        - Domains
+    post:
+      summary: 'Create Domain'
+      operationId: createDomain
+      description: 'Create a new domain for the authenticated user.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "{\n   \"data\": {\n      \"name\": \"example.com\",\n      \"ip\": \"192.158.1.38\",\n   }\n}"
+      tags:
+        - Domains
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'The name of the new domain.'
+                  example: example.com
+              required:
+                - name
+  '/api/v1/domains/{uuid}':
+    get:
+      summary: 'Show Domain Details'
+      operationId: showDomainDetails
+      description: 'Retrieve details of a specific domain.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "{\n   \"data\": {\n      \"name\": \"example.com\",\n      \"ip\": \"192.158.1.38\",\n   }\n}"
+      tags:
+        - Domains
+    parameters:
+      -
+        in: path
+        name: uuid
+        description: 'The UUID of the domain.'
+        example: da6e5e9b-1fd1-36bd-8b27-99a120ac7b2b
+        required: true
+        schema:
+          type: string
+  '/api/v1/domains/spf-record/{domain_uuid}':
+    patch:
+      summary: 'Update SPF Records'
+      operationId: updateSPFRecords
+      description: 'Update SPF records for a specific domain.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    success: true
+                    message: 'SPF records updated successfully'
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+                      message:
+                        type: string
+                        example: 'SPF records updated successfully'
+      tags:
+        - Domains
+    parameters:
+      -
+        in: path
+        name: domain_uuid
+        description: 'The UUID of the domain.'
+        example: 6003c3f1-cbe0-3103-a939-041fd05de8e4
+        required: true
+        schema:
+          type: string
+  '/api/v1/domains/dkim-records/{domain_uuid}':
+    patch:
+      summary: 'Update DKIM Records'
+      operationId: updateDKIMRecords
+      description: 'Update DKIM records for a specific domain.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    success: true
+                    message: 'DKIM records updated successfully'
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+                      message:
+                        type: string
+                        example: 'DKIM records updated successfully'
+      tags:
+        - Domains
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dkim_selectors:
+                  type: json
+                  description: 'The DKIM selectors.'
+                  example: '["google"]'
+              required:
+                - dkim_selectors
+    parameters:
+      -
+        in: path
+        name: domain_uuid
+        description: 'The UUID of the domain.'
+        example: 6665a683-b8b0-33a8-aec8-8d0083e60878
+        required: true
+        schema:
+          type: string
+  '/api/v1/domains/dmarc-record/{domain_uuid}':
+    patch:
+      summary: 'Update DMARC Record'
+      operationId: updateDMARCRecord
+      description: 'Update DMARC record for a specific domain.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    success: true
+                    message: 'DMARC record updated successfully'
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+                      message:
+                        type: string
+                        example: 'DMARC record updated successfully'
+      tags:
+        - Domains
+    parameters:
+      -
+        in: path
+        name: domain_uuid
+        description: 'The UUID of the domain.'
+        example: 7e74b97e-72f1-3b0c-ae99-d2b64fb25766
+        required: true
+        schema:
+          type: string
+  '/api/v1/domains/delete/{domain_uuid}':
+    delete:
+      summary: 'Delete Domain'
+      operationId: deleteDomain
+      description: 'Delete a domain associated with the authenticated user.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    success: true
+                    message: 'Successfully deleted your domain'
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+                      message:
+                        type: string
+                        example: 'Successfully deleted your domain'
+      tags:
+        - Domains
+    parameters:
+      -
+        in: path
+        name: domain_uuid
+        description: 'The UUID of the domain.'
+        example: 1192fa42-768d-3be7-a6f8-98a2ee463d15
+        required: true
+        schema:
+          type: string
+  /api/v1/email-accounts:
+    get:
+      summary: 'List Email Accounts'
+      operationId: listEmailAccounts
+      description: 'Retrieves a collection of email accounts associated with the authenticated workspace.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "{\n   \"data\": [\n      {\n         \"name\" => \"John Doe\",\n         \"email\" =>\"john@doe.com\",\n         \"connected\" => true,\n         \"provider\" => \"Google\",\n      },\n      {\n         \"name\" => \"Jane Doe\",\n         \"email\" =>\"jane@doe.com\",\n         \"connected\" => true,\n         \"provider\" => \"Microsoft\",\n      }\n  ]\n}"
+      tags:
+        - 'Email Accounts'
+  '/api/v1/email-accounts/{id}':
+    get:
+      summary: 'Show Email Account Details'
+      operationId: showEmailAccountDetails
+      description: 'Retrieves details of a specific email account.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "{\n   \"data\": {\n      \"name\" => \"John Doe\",\n      \"email\" =>\"john@doe.com\",\n      \"connected\" => true,\n      \"provider\" => \"Google\",\n   }\n}"
+      tags:
+        - 'Email Accounts'
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'The UUID of the email account.'
+        example: et
+        required: true
+        schema:
+          type: string
+  /api/v1/email-accounts/imap-smtp:
+    post:
+      summary: 'Create IMAP/SMTP Email Account'
+      operationId: createIMAPSMTPEmailAccount
+      description: 'Creates a new IMAP/SMTP email account for the authenticated workspace.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "{\n   \"data\": {\n      \"name\" => \"John Doe\",\n      \"email\" =>\"john@doe.com\",\n      \"connected\" => true,\n      \"provider\" => \"Google\",\n   }\n}"
+      tags:
+        - 'Email Accounts'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'The name for the email account.'
+                  example: 'John Doe'
+                provider:
+                  type: integer
+                  description: 'The provider for the authentication.'
+                  example: 1
+                imap_username:
+                  type: string
+                  description: 'The username for IMAP authentication.'
+                  example: user@example.com
+                imap_password:
+                  type: string
+                  description: 'The password for IMAP authentication.'
+                  example: secret_password
+                imap_host:
+                  type: string
+                  description: 'The host for IMAP'
+                  example: imap.host.com
+                imap_port:
+                  type: string
+                  description: 'The port for IMAP'
+                  example: '465'
+                imap_tls:
+                  type: string
+                  description: 'optional The TLS for IMAP'
+                  example: 'true'
+                smtp_username:
+                  type: string
+                  description: 'The username for SMTP authentication.'
+                  example: user@example.com
+                smtp_password:
+                  type: string
+                  description: 'The password for SMTP authentication.'
+                  example: secret_password
+                smtp_host:
+                  type: string
+                  description: 'The host for SMTP.'
+                  example: smtp.host.com
+                smtp_port:
+                  type: string
+                  description: 'The port for SMTP.'
+                  example: '400'
+                smtp_tls:
+                  type: optional
+                  description: 'The TLS for SMTP.'
+                  example: 'false'
+              required:
+                - name
+                - provider
+                - imap_username
+                - imap_password
+                - imap_host
+                - imap_port
+                - smtp_username
+                - smtp_password
+                - smtp_host
+                - smtp_port
+                - smtp_tls
+  /api/v1/email-accounts/test-imap-connection:
+    post:
+      summary: 'Test IMAP Connection'
+      operationId: testIMAPConnection
+      description: 'Tests the IMAP connection for the provided credentials.'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  -
+                    description: success
+                    type: object
+                    example:
+                      imap_successful: true
+                    properties:
+                      imap_successful:
+                        type: boolean
+                        example: true
+                  -
+                    description: failure
+                    type: object
+                    example:
+                      data:
+                        smtp_successful: false
+                        smtp_error: 'Error message detailing the issue'
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          smtp_successful:
+                            type: boolean
+                            example: false
+                          smtp_error:
+                            type: string
+                            example: 'Error message detailing the issue'
+      tags:
+        - 'Email Accounts'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                imap_username:
+                  type: string
+                  description: 'The username for IMAP authentication.'
+                  example: user@example.com
+                imap_password:
+                  type: string
+                  description: 'The password for IMAP authentication.'
+                  example: secret_password
+                imap_host:
+                  type: string
+                  description: 'The host for IMAP'
+                  example: imap.host.com
+                imap_port:
+                  type: string
+                  description: 'The port for IMAP'
+                  example: '465'
+                imap_tls:
+                  type: string
+                  description: 'optional The TLS for IMAP'
+                  example: 'true'
+              required:
+                - imap_username
+                - imap_password
+                - imap_host
+                - imap_port
+  /api/v1/email-accounts/test-smtp-connection:
+    post:
+      summary: 'Test SMTP Connection'
+      operationId: testSMTPConnection
+      description: 'Tests the SMTP connection for the provided credentials.'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  -
+                    description: success
+                    type: object
+                    example:
+                      smtp_successful: true
+                    properties:
+                      smtp_successful:
+                        type: boolean
+                        example: true
+                  -
+                    description: failure
+                    type: object
+                    example:
+                      data:
+                        smtp_successful: false
+                        smtp_error: 'Error message detailing the issue'
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          smtp_successful:
+                            type: boolean
+                            example: false
+                          smtp_error:
+                            type: string
+                            example: 'Error message detailing the issue'
+      tags:
+        - 'Email Accounts'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                smtp_username:
+                  type: string
+                  description: 'The username for SMTP authentication.'
+                  example: user@example.com
+                smtp_password:
+                  type: string
+                  description: 'The password for SMTP authentication.'
+                  example: secret_password
+                smtp_host:
+                  type: string
+                  description: 'The host for SMTP.'
+                  example: smtp.host.com
+                smtp_port:
+                  type: string
+                  description: 'The port for SMTP.'
+                  example: '400'
+                smtp_tls:
+                  type: optional
+                  description: 'The TLS for SMTP.'
+                  example: 'false'
+              required:
+                - smtp_username
+                - smtp_password
+                - smtp_host
+                - smtp_port
+                - smtp_tls
+  /api/v1/email-accounts/delete:
+    delete:
+      summary: 'Delete Email Account'
+      operationId: deleteEmailAccount
+      description: 'Deletes an IMAP/SMTP email account associated with the authenticated workspace.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    success: true
+                    message: 'Successfully deleted IMAP/SMTP email account'
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+                      message:
+                        type: string
+                        example: 'Successfully deleted IMAP/SMTP email account'
+      tags:
+        - 'Email Accounts'
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'The UUID of the email account.'
+        example: sed
+        required: true
+        schema:
+          type: string
+  /api/v1/contact-verification:
+    get:
+      summary: 'List Contact Lists'
+      operationId: listContactLists
+      description: 'Retrieves a collection of contact lists associated with the authenticated user.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "[\n   {\n       \"name\" => \"John Contact list\",\n       \"status\" => \"Created\",\n       \"total_contacts\" => 10,\n       \"valid_contacts\" => 5,\n       \"updated_at\" => 2024-06-25,\n   },\n   {\n       \"name\" => \"Jane Contact list\",\n       \"status\" => \"Processing\",\n       \"total_contacts\" => 10,\n       \"valid_contacts\" => 5,\n       \"updated_at\" => 2024-06-25,\n   }\n]"
+      tags:
+        - 'Contact Verification'
+    post:
+      summary: 'Create Contact Verification'
+      operationId: createContactVerification
+      description: 'Creates a new contact verification request for the authenticated user.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "{\n   \"data\": {\n       \"name\" => \"My Contact List\",\n       \"status\" => \"Processing\",\n       \"total_contacts\" => 10,\n       \"valid_contacts\" => 5,\n       \"updated_at\" => 2024-06-25,\n   }\n}"
+      tags:
+        - 'Contact Verification'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                csv:
+                  type: string
+                  format: binary
+                  description: 'The CSV file containing the contacts.'
+                name:
+                  type: string
+                  description: 'The name of the contact list.'
+                  example: 'My Contact List'
+                columnToMap:
+                  type: string
+                  description: 'The column in the CSV to map to the email field.'
+                  example: email
+                0:
+                  type: string
+                  description: ''
+                  example: null
+              required:
+                - csv
+                - name
+                - columnToMap
+  '/api/v1/contact-verification/show/{contact_list_uuid}':
+    get:
+      summary: 'Show Contact List Details'
+      operationId: showContactListDetails
+      description: 'Retrieves details of a specific contact list.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "{\n   \"data\": {\n       \"name\" => \"John Contact list\",\n       \"status\" => \"Created\",\n       \"total_contacts\" => 10,\n       \"valid_contacts\" => 5,\n       \"updated_at\" => 2024-06-25,\n   }\n}"
+      tags:
+        - 'Contact Verification'
+    parameters:
+      -
+        in: path
+        name: contact_list_uuid
+        description: 'The UUID of the contact list.'
+        example: 907c5e05-16f1-3e26-b151-9b90c2c11248
+        required: true
+        schema:
+          type: string
+  '/api/v1/contact-verification/download/{contact_list_uuid}':
+    get:
+      summary: 'Download Contact List'
+      operationId: downloadContactList
+      description: 'Allows the user to download a completed contact list.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "{\n    // Streamed response for file download\n}"
+      tags:
+        - 'Contact Verification'
+    parameters:
+      -
+        in: path
+        name: contact_list_uuid
+        description: 'The UUID of the contact list.'
+        example: e8bdb0a1-5a31-3649-a5c8-7ac6d57763b8
+        required: true
+        schema:
+          type: string
+  /api/v1/blacklist-checks/domains:
+    get:
+      summary: 'List Domain Blacklists'
+      operationId: listDomainBlacklists
+      description: 'Retrieves a collection of blacklist checks for domains associated with the authenticated user.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "{\n  \"data\": [\n      {\n          \"domain\": \"example.com\",\n           \"ip\": \"192.168.1.1\",\n           \"status\": \"Failed\",\n           \"blacklists_count\": 2,\n           \"type\": \"Domain\",\n       },\n       {\n           \"domain\": \"another-example.com\",\n           \"ip\": \"192.168.1.2\",\n           \"status\": \"Completed\",\n           \"blacklists_count\": 2,\n           \"type\": \"Domain\",\n       }\n    ]\n}"
+      tags:
+        - 'Blacklist Checks'
+  /api/v1/blacklist-checks/email-accounts:
+    get:
+      summary: 'List Email Account Blacklists'
+      operationId: listEmailAccountBlacklists
+      description: 'Retrieves a collection of blacklist checks for email accounts associated with the authenticated user.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "{\n  \"data\": [\n      {\n          \"domain\": \"example.com\",\n          \"ip\": \"192.168.1.1\",\n          \"status\": \"Failed\",\n          \"blacklists_count\": 2,\n          \"type\": \"Email account\",\n      },\n      {\n          \"domain\": \"another-example.com\",\n          \"ip\": \"192.168.1.2\",\n          \"status\": \"Completed\",\n          \"blacklists_count\": 2,\n          \"type\": \"Email account\",\n      }\n   ]\n}"
+      tags:
+        - 'Blacklist Checks'
+  /api/v1/blacklist-checks/ad-hoc:
+    post:
+      summary: 'Create Ad-Hoc Blacklist Check'
+      operationId: createAdHocBlacklistCheck
+      description: 'Creates a new ad-hoc blacklist check for the authenticated user.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "{\n  \"data\": {\n      \"domain\": \"example.com\",\n      \"ip\": \"192.168.1.1\",\n      \"status\": \"Completed\",\n      \"blacklists_count\": 1,\n      \"type\": \"Domain\",\n      \"blacklists\": [\"b.barracudacentral.org\"]\n  }\n},"
+      tags:
+        - 'Blacklist Checks'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                domain_or_ip:
+                  type: string
+                  description: 'The domain or IPv4 IP address to check.'
+                  example: example.com
+              required:
+                - domain_or_ip
+  '/api/v1/blacklist-checks/{id}':
+    get:
+      summary: 'Show Blacklist Check Details'
+      operationId: showBlacklistCheckDetails
+      description: 'Retrieves details of a specific blacklist check.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "{\n  \"data\": {\n      \"domain\": \"example.com\",\n      \"ip\": \"192.168.1.1\",\n      \"status\": \"Failed\",\n      \"blacklists_count\": 2,\n      \"type\": \"Domain\",\n  }\n},"
+      tags:
+        - 'Blacklist Checks'
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'The UUID of the blacklist check'
+        example: accusantium
+        required: true
+        schema:
+          type: string
+  /api/v1/dmarc-reports:
+    get:
+      summary: 'List DMARC Report Domains'
+      operationId: listDMARCReportDomains
+      description: 'Retrieves a collection of domains that have DMARC reports associated with the authenticated workspace.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    -
+                      domain: example.com
+                      last_report_processed: never
+                      dmarc_being_monitored: Monitored
+                      spf: Valid
+                      dkim: Valid
+                      dmarc: Invalid
+                    -
+                      domain: second-example.com
+                      last_report_processed: never
+                      dmarc_being_monitored: Monitored
+                      spf: Valid
+                      dkim: 'Selectors Missing'
+                      dmarc: Invalid
+                properties:
+                  data:
+                    type: array
+                    example:
+                      -
+                        domain: example.com
+                        last_report_processed: never
+                        dmarc_being_monitored: Monitored
+                        spf: Valid
+                        dkim: Valid
+                        dmarc: Invalid
+                      -
+                        domain: second-example.com
+                        last_report_processed: never
+                        dmarc_being_monitored: Monitored
+                        spf: Valid
+                        dkim: 'Selectors Missing'
+                        dmarc: Invalid
+                    items:
+                      type: object
+                      properties:
+                        domain:
+                          type: string
+                          example: example.com
+                        last_report_processed:
+                          type: string
+                          example: never
+                        dmarc_being_monitored:
+                          type: string
+                          example: Monitored
+                        spf:
+                          type: string
+                          example: Valid
+                        dkim:
+                          type: string
+                          example: Valid
+                        dmarc:
+                          type: string
+                          example: Invalid
+      tags:
+        - 'DMARC Reports'
+  '/api/v1/dmarc-reports/domains/{domain_uuid}/insights':
+    get:
+      summary: 'Get DMARC Report Statistics'
+      operationId: getDMARCReportStatistics
+      description: 'Retrieves DMARC report statistics for a specific domain between two dates.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "{\n   \"data\": {\n       \"email_volume\":5,\n       \"email_sources_count\": 3,\n       \"dmarc_pass_count\":4,\n       \"spf_aligned_count\": 3,\n       \"dkim_aligned_count\": 2,\n   }\n}"
+      tags:
+        - 'DMARC Reports'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                start_date:
+                  type: string
+                  description: 'The start date for the report in YYYY-MM-DD format.'
+                  example: '2024-06-01'
+                end_date:
+                  type: string
+                  description: 'The end date for the report in YYYY-MM-DD format.'
+                  example: '2024-06-31'
+              required:
+                - start_date
+                - end_date
+    parameters:
+      -
+        in: path
+        name: domain_uuid
+        description: 'The domain UUID'
+        example: 9bf8c7f3-b1fe-33e2-aed4-accf4f434e4a
+        required: true
+        schema:
+          type: string
+  '/api/v1/dmarc-reports/domains/{domain_uuid}/dmarc-sources':
+    get:
+      summary: 'Get DMARC Report Sources'
+      operationId: getDMARCReportSources
+      description: 'Retrieves DMARC report sources for a specific domain between two dates.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "{\n   \"data\": [\n      {\n         \"source_ip\" => \"198.51.100.0\",\n         \"sent_to\" => \"john@doe.com\",\n         \"email_volume\" => 5,\n         \"dmarc_pass\" => 4,\n         \"dmarc_pass_percentage\" => 90,\n         \"spf_aligned\" => 5,\n         \"spf_aligned_percentage\" => 100,\n         \"dkim_aligned\" => 5,\n         \"dkim_aligned_percentage\" => 100,\n      },\n      {\n         \"source_ip\" => \"198.51.100.1\",\n         \"sent_to\" => \"jane@doe.com\",\n         \"email_volume\" => 4,\n         \"dmarc_pass\" => 4,\n         \"dmarc_pass_percentage\" => 100,\n         \"spf_aligned\" => 4,\n         \"spf_aligned_percentage\" => 100,\n         \"dkim_aligned\" => 4,\n         \"dkim_aligned_percentage\" => 100,\n      }\n   ]\n}"
+      tags:
+        - 'DMARC Reports'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                start_date:
+                  type: string
+                  description: 'The start date for the report in YYYY-MM-DD format.'
+                  example: '2024-06-01'
+                end_date:
+                  type: string
+                  description: 'The end date for the report in YYYY-MM-DD format.'
+                  example: '2024-06-31'
+              required:
+                - start_date
+                - end_date
+    parameters:
+      -
+        in: path
+        name: domain_uuid
+        description: 'The domain UUID'
+        example: 31f499fb-deea-31ad-bb47-6045504edb03
+        required: true
+        schema:
+          type: string
+  '/api/v1/dmarc-reports/domains/{domain_uuid}/dmarc-failures':
+    get:
+      summary: 'Get DMARC Report Failures'
+      operationId: getDMARCReportFailures
+      description: 'Retrieves DMARC report failures for a specific domain between two dates.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "{\n   \"data\": [\n      {\n         \"source_ip\" => \"198.51.100.0\",\n         \"sent_to\" => \"john@doe.com\",\n         \"email_volume\" => 5,\n         \"spf_pass\" => \"Pass\",\n         \"spf_aligned\" => \"Aligned\",\n         \"dkim_pass\" => \"Pass\",\n         \"dkim_aligned\" => \"Aligned\",\n         \"from\" => \"Not Provided\",\n         \"to\" => \"Not Provided\",\n      },\n      {\n         \"source_ip\" => \"198.51.100.1\",\n         \"sent_to\" => \"jane@doe.com\",\n         \"email_volume\" => 5,\n         \"spf_pass\" => \"Fail\",\n         \"spf_aligned\" => \"Not aligned\",\n         \"dkim_pass\" => \"Fail\",\n         \"dkim_aligned\" => \"Not Aligned\",\n         \"from\" => \"Not Provided\",\n         \"to\" => \"Not Provided\",\n      }\n   ]\n}"
+      tags:
+        - 'DMARC Reports'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                start_date:
+                  type: string
+                  description: 'The start date for the report in YYYY-MM-DD format.'
+                  example: '2024-06-01'
+                end_date:
+                  type: string
+                  description: 'The end date for the report in YYYY-MM-DD format.'
+                  example: '2024-06-31'
+              required:
+                - start_date
+                - end_date
+    parameters:
+      -
+        in: path
+        name: domain_uuid
+        description: 'The domain UUID'
+        example: f878af87-bf62-35e0-bb7a-27c4ff9a77bf
+        required: true
+        schema:
+          type: string
+  /api/v1/email-authentication/spf-lookup:
+    get:
+      summary: 'SPF Lookup'
+      operationId: sPFLookup
+      description: 'Retrieves and validates the SPF records for a given domain.'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  -
+                    description: success
+                    type: object
+                    example:
+                      data:
+                        success: true
+                        results:
+                          valid: true
+                          errors: []
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          success:
+                            type: boolean
+                            example: true
+                          results:
+                            type: object
+                            properties:
+                              valid:
+                                type: boolean
+                                example: true
+                              errors:
+                                type: array
+                                example: []
+                  -
+                    description: failure
+                    type: object
+                    example:
+                      data:
+                        success: false
+                        errors:
+                          - 'Your domain is invalid or does not contain an SPF record.'
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          success:
+                            type: boolean
+                            example: false
+                          errors:
+                            type: array
+                            example:
+                              - 'Your domain is invalid or does not contain an SPF record.'
+                            items:
+                              type: string
+      tags:
+        - 'Email Authentication'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                domain:
+                  type: string
+                  description: 'The domain to lookup the SPF records for.'
+                  example: example.com
+              required:
+                - domain
+  /api/v1/email-authentication/spf-generator-wizard:
+    post:
+      summary: 'SPF Generator Wizard'
+      operationId: sPFGeneratorWizard
+      description: 'Generates an SPF record based on selected providers.'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  -
+                    description: success
+                    type: object
+                    example:
+                      data:
+                        success: true
+                        results: 'v=spf1 include:_spf.google.com include:spf.protection.outlook.com ~all'
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          success:
+                            type: boolean
+                            example: true
+                          results:
+                            type: string
+                            example: 'v=spf1 include:_spf.google.com include:spf.protection.outlook.com ~all'
+                  -
+                    description: failure
+                    type: object
+                    example:
+                      data:
+                        success: false
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          success:
+                            type: boolean
+                            example: false
+      tags:
+        - 'Email Authentication'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                providers:
+                  type: json
+                  description: 'List of provider names to include in the SPF record.'
+                  example: '["google", "microsoft"]'
+              required:
+                - providers
+  /api/v1/email-authentication/spf-raw-generator:
+    post:
+      summary: 'SPF Raw Generator'
+      operationId: sPFRawGenerator
+      description: 'Generates a raw SPF record based on provided values.'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  -
+                    description: success
+                    type: object
+                    example:
+                      data:
+                        success: true
+                        results: 'v=spf1 ip4:192.0.2.0/24 ~all'
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          success:
+                            type: boolean
+                            example: true
+                          results:
+                            type: string
+                            example: 'v=spf1 ip4:192.0.2.0/24 ~all'
+                  -
+                    description: redirect
+                    type: object
+                    example:
+                      data:
+                        success: true
+                        results: 'v=spf1 redirect=spf.example.com'
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          success:
+                            type: boolean
+                            example: true
+                          results:
+                            type: string
+                            example: 'v=spf1 redirect=spf.example.com'
+                  -
+                    schema:
+                      type: object
+                      example:
+                        data:
+                          success: false
+                      properties:
+                        data:
+                          type: object
+                          properties:
+                            success:
+                              type: boolean
+                              example: false
+      tags:
+        - 'Email Authentication'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                redirect:
+                  type: boolean
+                  description: 'Whether to use redirect in the SPF record.'
+                  example: false
+                redirect_url:
+                  type: string
+                  description: 'The redirect URL for the SPF record.'
+                  example: spf.example.com
+                failure_policy:
+                  type: string
+                  description: 'The SPF failure policy to use.'
+                  example: ~all
+                tag:
+                  type: string
+                  description: 'The SPF tag to use.'
+                  example: ip4
+                value:
+                  type: string
+                  description: 'The value for the SPF tag.'
+                  example: 192.0.2.0/24
+  /api/v1/email-authentication/dkim-lookup:
+    get:
+      summary: 'DKIM Lookup'
+      operationId: dKIMLookup
+      description: 'Retrieves and validates the DKIM records for a given domain and selector.'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  -
+                    description: success
+                    type: object
+                    example:
+                      data:
+                        success: true
+                        results:
+                          valid: true
+                          errors: []
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          success:
+                            type: boolean
+                            example: true
+                          results:
+                            type: object
+                            properties:
+                              valid:
+                                type: boolean
+                                example: true
+                              errors:
+                                type: array
+                                example: []
+                  -
+                    description: failure
+                    type: object
+                    example:
+                      data:
+                        success: false
+                        errors:
+                          - 'Your domain/selector is invalid or does not contain a DKIM record.'
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          success:
+                            type: boolean
+                            example: false
+                          errors:
+                            type: array
+                            example:
+                              - 'Your domain/selector is invalid or does not contain a DKIM record.'
+                            items:
+                              type: string
+      tags:
+        - 'Email Authentication'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                domain:
+                  type: string
+                  description: 'The domain to lookup the DKIM records for.'
+                  example: example.com
+                selector:
+                  type: string
+                  description: 'The selector for the DKIM records.'
+                  example: default
+              required:
+                - domain
+                - selector
+  /api/v1/email-authentication/dkim-raw-generator:
+    post:
+      summary: 'DKIM Raw Generator'
+      operationId: dKIMRawGenerator
+      description: 'Generates a raw DKIM record.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    success: true
+                    results: 'k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAn7yQJ6tc...'
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+                      results:
+                        type: string
+                        example: 'k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAn7yQJ6tc...'
+      tags:
+        - 'Email Authentication'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                keyLength:
+                  type: integer
+                  description: 'The key length for the DKIM record.'
+                  example: 2048
+              required:
+                - keyLength
+  /api/v1/email-authentication/dmarc-lookup:
+    get:
+      summary: 'DMARC Lookup'
+      operationId: dMARCLookup
+      description: 'Retrieves and validates the DMARC records for a given domain.'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  -
+                    description: success
+                    type: object
+                    example:
+                      data:
+                        success: true
+                        results:
+                          valid: true
+                          errors: []
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          success:
+                            type: boolean
+                            example: true
+                          results:
+                            type: object
+                            properties:
+                              valid:
+                                type: boolean
+                                example: true
+                              errors:
+                                type: array
+                                example: []
+                  -
+                    description: failure
+                    type: object
+                    example:
+                      data:
+                        success: false
+                        errors:
+                          - 'Your domain is invalid or does not contain a DMARC record.'
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          success:
+                            type: boolean
+                            example: false
+                          errors:
+                            type: array
+                            example:
+                              - 'Your domain is invalid or does not contain a DMARC record.'
+                            items:
+                              type: string
+      tags:
+        - 'Email Authentication'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                domain:
+                  type: string
+                  description: 'The domain to lookup the DMARC records for.'
+                  example: example.com
+              required:
+                - domain
+  /api/v1/email-authentication/dmarc-connected-domain:
+    post:
+      summary: 'Generate DMARC for Connected Domain'
+      operationId: generateDMARCForConnectedDomain
+      description: 'Generates a DMARC record for a connected domain with a random DMARC inbox name.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    success: true
+                    results: 'v=DMARC1; p=reject; rua=mailto:dmarc.123e4567-e89b-12d3-a456-426614174000@example.com;'
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+                      results:
+                        type: string
+                        example: 'v=DMARC1; p=reject; rua=mailto:dmarc.123e4567-e89b-12d3-a456-426614174000@example.com;'
+      tags:
+        - 'Email Authentication'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                domain_uuid:
+                  type: string
+                  description: 'The UUID of the connected domain.'
+                  example: 123e4567-e89b-12d3-a456-426614174000
+                policy:
+                  type: string
+                  description: 'The DMARC policy to use.'
+                  example: reject
+              required:
+                - domain_uuid
+                - policy
+  /api/v1/email-authentication/dmarc-another-domain:
+    post:
+      summary: 'Generate DMARC for Another Domain'
+      operationId: generateDMARCForAnotherDomain
+      description: 'Generates a DMARC record for another domain with a specified reporting address.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    success: true
+                    results: 'v=DMARC1; p=quarantine; rua=mailto:dmarc-reports@example.com;'
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+                      results:
+                        type: string
+                        example: 'v=DMARC1; p=quarantine; rua=mailto:dmarc-reports@example.com;'
+      tags:
+        - 'Email Authentication'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                domain:
+                  type: string
+                  description: 'The domain to lookup the DMARC records for.'
+                  example: example.com
+                policy:
+                  type: string
+                  description: 'The DMARC policy to use.'
+                  example: quarantine
+                rua:
+                  type: string
+                  description: 'The reporting address for DMARC reports.'
+                  example: dmarc-reports@example.com
+              required:
+                - domain
+                - policy
+                - rua
+  /api/v1/content-spam-check:
+    post:
+      summary: 'Check Content for Spam'
+      operationId: checkContentForSpam
+      description: 'Submits content to check for spam'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "{\n  \"data\":\n      \"message\": {\n          \"is_spam\": true,\n          \"spam_score\": 5.6,\n          \"number_of_spam_words\": 3,\n          \"spam_words\": [\"spam\", \"offer\", \"free\"],\n          \"comma_separated_spam_words\": \"spammy, is, message\"\n      }\n  }\n}"
+      tags:
+        - 'Content Spam Check'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  description: 'The content to check for spam.'
+                  example: '"This is a spammy message!"'
+              required:
+                - content
+  /api/v1/hosted-domain-redirects/ip:
+    get:
+      summary: 'IP of Hosted Domain Redirect'
+      operationId: iPOfHostedDomainRedirect
+      description: "Retrieves the ip of the current workspace's hosted domain redirect"
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    ip_address: 192.168.1.1
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      ip_address:
+                        type: string
+                        example: 192.168.1.1
+      tags:
+        - 'Hosted Domain Redirect'
+  /api/v1/hosted-domain-redirects:
+    get:
+      summary: 'List Hosted Domain Redirects'
+      operationId: listHostedDomainRedirects
+      description: 'Retrieves a list of hosted domain redirects associated with the authenticated user workspace.'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    -
+                      domain: example.com
+                      redirect_domain: redirect.example.com
+                      cluster_ip_address: 192.168.1.1
+                      status: active
+                    -
+                      domain: second-example.com
+                      redirect_domain: redirect.second-example.com
+                      cluster_ip_address: 192.168.1.2
+                      status: active
+                properties:
+                  data:
+                    type: array
+                    example:
+                      -
+                        domain: example.com
+                        redirect_domain: redirect.example.com
+                        cluster_ip_address: 192.168.1.1
+                        status: active
+                      -
+                        domain: second-example.com
+                        redirect_domain: redirect.second-example.com
+                        cluster_ip_address: 192.168.1.2
+                        status: active
+                    items:
+                      type: object
+                      properties:
+                        domain:
+                          type: string
+                          example: example.com
+                        redirect_domain:
+                          type: string
+                          example: redirect.example.com
+                        cluster_ip_address:
+                          type: string
+                          example: 192.168.1.1
+                        status:
+                          type: string
+                          example: active
+      tags:
+        - 'Hosted Domain Redirect'
+    post:
+      summary: 'Create Hosted Domain Redirect'
+      operationId: createHostedDomainRedirect
+      description: 'Creates a new hosted domain redirect for the authenticated user workspace.'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  -
+                    description: success
+                    type: object
+                    example:
+                      data:
+                        domain: example.com
+                        redirect_domain: redirect.example.com
+                        cluster_ip_address: 192.168.1.1
+                        status: active
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          domain:
+                            type: string
+                            example: example.com
+                          redirect_domain:
+                            type: string
+                            example: redirect.example.com
+                          cluster_ip_address:
+                            type: string
+                            example: 192.168.1.1
+                          status:
+                            type: string
+                            example: active
+                  -
+                    description: dns_not_resolved
+                    type: object
+                    example:
+                      data:
+                        success: false
+                        message: 'Did not resolve'
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          success:
+                            type: boolean
+                            example: false
+                          message:
+                            type: string
+                            example: 'Did not resolve'
+                  -
+                    schema:
+                      type: object
+                      example:
+                        data:
+                          success: false
+                          message: 'Your domain is not pointing to one of our IP addresses. If you just pointed your domain, it could take a few minutes to a few hours. You can try again in a few minutes.'
+                      properties:
+                        data:
+                          type: object
+                          properties:
+                            success:
+                              type: boolean
+                              example: false
+                            message:
+                              type: string
+                              example: 'Your domain is not pointing to one of our IP addresses. If you just pointed your domain, it could take a few minutes to a few hours. You can try again in a few minutes.'
+                  -
+                    schema:
+                      type: object
+                      example:
+                        data:
+                          success: false
+                          message: 'Your domain has no SSL. If you just pointed your domain, it could take a few minutes to a few hours. You can try again in a few minutes.'
+                      properties:
+                        data:
+                          type: object
+                          properties:
+                            success:
+                              type: boolean
+                              example: false
+                            message:
+                              type: string
+                              example: 'Your domain has no SSL. If you just pointed your domain, it could take a few minutes to a few hours. You can try again in a few minutes.'
+        400:
+          description: limit_reached
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    message: 'You have reached your hosted domain redirect limit'
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: 'You have reached your hosted domain redirect limit'
+      tags:
+        - 'Hosted Domain Redirect'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                domain:
+                  type: string
+                  description: 'The domain to redirect.'
+                  example: '"example.com"'
+                redirect:
+                  type: string
+                  description: 'The URL to redirect to.'
+                  example: '"https://example.com/redirect"'
+              required:
+                - domain
+                - redirect
+  '/api/v1/hosted-domain-redirects/{id}':
+    get:
+      summary: 'Show Hosted Domain Redirect'
+      operationId: showHostedDomainRedirect
+      description: 'Retrieves details of a specific hosted domain redirect.'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    domain: example.com
+                    redirect_domain: redirect.example.com
+                    cluster_ip_address: 192.168.1.1
+                    status: active
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      domain:
+                        type: string
+                        example: example.com
+                      redirect_domain:
+                        type: string
+                        example: redirect.example.com
+                      cluster_ip_address:
+                        type: string
+                        example: 192.168.1.1
+                      status:
+                        type: string
+                        example: active
+      tags:
+        - 'Hosted Domain Redirect'
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'The UUID of the hosted domain redirect.'
+        example: a
+        required: true
+        schema:
+          type: string
+  '/api/v1/hosted-domain-redirects/{hosted_domain_redirect_uuid}':
+    delete:
+      summary: 'Delete Hosted Domain Redirect'
+      operationId: deleteHostedDomainRedirect
+      description: 'Deletes a specific hosted domain redirect.'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    success: true
+                    message: 'Successfully deleted example.com hosted domain redirect'
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+                      message:
+                        type: string
+                        example: 'Successfully deleted example.com hosted domain redirect'
+      tags:
+        - 'Hosted Domain Redirect'
+    parameters:
+      -
+        in: path
+        name: hosted_domain_redirect_uuid
+        description: 'The UUID of the hosted domain redirect.'
+        example: 7d3065bf-7544-3f61-84d2-ba7d67394f0c
+        required: true
+        schema:
+          type: string
+  /api/v1/domain-host-lookup:
+    post:
+      summary: 'Domain Host Lookup'
+      operationId: domainHostLookup
+      description: 'This endpoint allows you to lookup the domain host for a given domain.'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  -
+                    description: success
+                    type: object
+                    example:
+                      data:
+                        domain: emailguard.io
+                        domain_host: Google
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          domain:
+                            type: string
+                            example: emailguard.io
+                          domain_host:
+                            type: string
+                            example: Google
+                  -
+                    description: not_found
+                    type: object
+                    example:
+                      error: 'This domain is not configured to receive emails'
+                    properties:
+                      error:
+                        type: string
+                        example: 'This domain is not configured to receive emails'
+      tags:
+        - 'Domain Host Lookup'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                domain:
+                  type: string
+                  description: 'The domain to lookup.'
+                  example: emailguard.io
+              required:
+                - domain
+  /api/v1/domain-masking-proxies/ip:
+    get:
+      summary: 'IP of Domain Masking Proxy'
+      operationId: iPOfDomainMaskingProxy
+      description: "Retrieves the ip of the current workspace's domain masking proxy"
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    ip_address: 192.168.1.1
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      ip_address:
+                        type: string
+                        example: 192.168.1.1
+      tags:
+        - 'Domain Masking Proxy'
+  /api/v1/domain-masking-proxies:
+    get:
+      summary: 'List Domain Masking Proxies'
+      operationId: listDomainMaskingProxies
+      description: 'Retrieves a list of hosted domain redirects associated with the authenticated user workspace.'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    -
+                      masking_domain: example.com
+                      primary_domain: redirect.example.com
+                      cluster_ip_address: 192.168.1.1
+                      status: active
+                    -
+                      masking_domain: second-example.com
+                      primary_domain: redirect.second-example.com
+                      cluster_ip_address: 192.168.1.2
+                      status: active
+                properties:
+                  data:
+                    type: array
+                    example:
+                      -
+                        masking_domain: example.com
+                        primary_domain: redirect.example.com
+                        cluster_ip_address: 192.168.1.1
+                        status: active
+                      -
+                        masking_domain: second-example.com
+                        primary_domain: redirect.second-example.com
+                        cluster_ip_address: 192.168.1.2
+                        status: active
+                    items:
+                      type: object
+                      properties:
+                        masking_domain:
+                          type: string
+                          example: example.com
+                        primary_domain:
+                          type: string
+                          example: redirect.example.com
+                        cluster_ip_address:
+                          type: string
+                          example: 192.168.1.1
+                        status:
+                          type: string
+                          example: active
+      tags:
+        - 'Domain Masking Proxy'
+    post:
+      summary: 'Create Domain Masking Proxy'
+      operationId: createDomainMaskingProxy
+      description: 'Create a new domain masking proxy for the authenticated user workspace.'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  -
+                    description: success
+                    type: object
+                    example:
+                      data:
+                        masking_domain: tryexample.com
+                        primary_domain: example.com
+                        cluster_ip_address: 192.168.1.1
+                        status: active
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          masking_domain:
+                            type: string
+                            example: tryexample.com
+                          primary_domain:
+                            type: string
+                            example: example.com
+                          cluster_ip_address:
+                            type: string
+                            example: 192.168.1.1
+                          status:
+                            type: string
+                            example: active
+                  -
+                    description: dns_not_resolved
+                    type: object
+                    example:
+                      data:
+                        success: false
+                        message: 'Did not resolve'
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          success:
+                            type: boolean
+                            example: false
+                          message:
+                            type: string
+                            example: 'Did not resolve'
+                  -
+                    schema:
+                      type: object
+                      example:
+                        data:
+                          success: false
+                          message: 'Your domain is not pointing to one of our IP addresses. If you just pointed your domain, it could take a few minutes to a few hours. You can try again in a few minutes.'
+                      properties:
+                        data:
+                          type: object
+                          properties:
+                            success:
+                              type: boolean
+                              example: false
+                            message:
+                              type: string
+                              example: 'Your domain is not pointing to one of our IP addresses. If you just pointed your domain, it could take a few minutes to a few hours. You can try again in a few minutes.'
+                  -
+                    schema:
+                      type: object
+                      example:
+                        data:
+                          success: false
+                          message: 'Your domain has no SSL. If you just pointed your domain, it could take a few minutes to a few hours. You can try again in a few minutes.'
+                      properties:
+                        data:
+                          type: object
+                          properties:
+                            success:
+                              type: boolean
+                              example: false
+                            message:
+                              type: string
+                              example: 'Your domain has no SSL. If you just pointed your domain, it could take a few minutes to a few hours. You can try again in a few minutes.'
+        400:
+          description: limit_reached
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    message: 'You have reached your domain masking proxy limit'
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: 'You have reached your domain masking proxy limit'
+      tags:
+        - 'Domain Masking Proxy'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                masking_domain:
+                  type: string
+                  description: 'The secondary domain you want to act as the mask.'
+                  example: '"tryexample.com"'
+                primary_domain:
+                  type: string
+                  description: 'The primary domain you want to hide.'
+                  example: '"example.com"'
+              required:
+                - masking_domain
+                - primary_domain
+  '/api/v1/domain-masking-proxies/{hosted_domain_redirect_uuid}':
+    get:
+      summary: 'Show Domain Masking Proxy'
+      operationId: showDomainMaskingProxy
+      description: 'Retrieves details of a specific domain masking proxy'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    masking_domain: tryexample.com
+                    primary_domain: example.com
+                    cluster_ip_address: 192.168.1.1
+                    status: active
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      masking_domain:
+                        type: string
+                        example: tryexample.com
+                      primary_domain:
+                        type: string
+                        example: example.com
+                      cluster_ip_address:
+                        type: string
+                        example: 192.168.1.1
+                      status:
+                        type: string
+                        example: active
+      tags:
+        - 'Domain Masking Proxy'
+    delete:
+      summary: 'Delete Domain Masking Proxy'
+      operationId: deleteDomainMaskingProxy
+      description: 'Deletes a specific domain masking proxy'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    success: true
+                    message: 'Successfully deleted example.com domain masking proxy'
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+                      message:
+                        type: string
+                        example: 'Successfully deleted example.com domain masking proxy'
+      tags:
+        - 'Domain Masking Proxy'
+    parameters:
+      -
+        in: path
+        name: hosted_domain_redirect_uuid
+        description: 'The uuid of the domain masking proxy'
+        example: 85c3ddaa-6079-3d5c-a12f-0a6d0945314a
+        required: true
+        schema:
+          type: string
+  /api/v1/email-host-lookup:
+    post:
+      summary: 'Email Host Lookup'
+      operationId: emailHostLookup
+      description: 'This endpoint allows you to lookup the email service provider for a given email address.'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  -
+                    description: success
+                    type: object
+                    example:
+                      data:
+                        email: user@example.com
+                        email_host: Gmail
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          email:
+                            type: string
+                            example: user@example.com
+                          email_host:
+                            type: string
+                            example: Gmail
+                  -
+                    description: not_found
+                    type: object
+                    example:
+                      error: 'This domain is not configured to receive emails'
+                    properties:
+                      error:
+                        type: string
+                        example: 'This domain is not configured to receive emails'
+      tags:
+        - 'Email Host Lookup'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: 'The email address to lookup.'
+                  example: user@example.com
+              required:
+                - email
+  /api/v1/email-accounts/reputation-builder-accounts/random:
+    get:
+      summary: ''
+      operationId: getApiV1EmailAccountsReputationBuilderAccountsRandom
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+      security: []
+  /api/v1/inbox-placement-tests:
+    get:
+      summary: 'List Inbox Placement Tests'
+      operationId: listInboxPlacementTests
+      description: 'Retrieves a collection of inbox placement tests associated with the authenticated user.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "{\n     \"data\": [\n         {\n             \"uuid\": \"9c9eb547-851d-43a3-8721-1dc0fcedab07\",\n             \"name\": \"sample test\",\n             \"status\": \"created\",\n             \"google_workspace_emails_count\": 3,\n             \"microsoft_professional_emails_count\": 0,\n             \"created_at\": \"2024-07-27T04:30:01.000000Z\",\n             \"updated_at\": \"2024-07-27T04:30:01.000000Z\",\n             \"completed_at\": null,\n             \"overall_score\": 50,\n             \"filter_phrase\": \"egipt_4GgCyN6wF3MuhYlRVqvz31slKgRagf\",\n             \"comma_separated_test_email_addresses\": \"jake@emailguardalpha.com,cody@emailguardalpha.com,eddie@emailguardalpha.com\",\n             \"inbox_placement_test_emails\": [\n                 {\n                     \"uuid\": \"9c9eb547-8936-484b-975c-df946688ac78\",\n                     \"email\": \"jake@emailguardalpha.com\",\n                     \"provider\": \"Google\",\n                     \"sender_email_account_address\": null,\n                     \"status\": \"waiting_for_email\",\n                     \"folder\": null,\n                     \"created_at\": \"2024-07-27T04:30:01.000000Z\",\n                     \"updated_at\": \"2024-07-27T04:30:01.000000Z\"\n                 },\n                 {\n                     \"uuid\": \"9c9eb547-8b4e-4fd2-8888-90baff4557be\",\n                     \"email\": \"cody@emailguardalpha.com\",\n                     \"provider\": \"Google\",\n                     \"sender_email_account_address\": null,\n                     \"status\": \"waiting_for_email\",\n                     \"folder\": null,\n                     \"created_at\": \"2024-07-27T04:30:01.000000Z\",\n                     \"updated_at\": \"2024-07-27T04:30:01.000000Z\"\n                  },\n             ]\n         },\n     ]\n}"
+      tags:
+        - 'Inbox Placement Tests'
+    post:
+      summary: 'Create Inbox Placement Test'
+      operationId: createInboxPlacementTest
+      description: 'Create a new inbox placement test'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    uuid: 9c9eb83f-51dd-4a7e-a494-e63cc4e5f0a5
+                    name: 'test name'
+                    status: created
+                    google_workspace_emails_count: 3
+                    microsoft_professional_emails_count: 0
+                    created_at: '2024-07-27T04:38:19.000000Z'
+                    updated_at: '2024-07-27T04:38:19.000000Z'
+                    completed_at: null
+                    overall_score: null
+                    filter_phrase: egipt_XWPOUJwYhKrvElDeqEOeFl4k5r1r2B
+                    comma_separated_test_email_addresses: 'cody@emailguardalpha.com,eddie@emailguardalpha.com,jake@emailguardalpha.com'
+                    inbox_placement_test_emails:
+                      -
+                        uuid: 9c9eb83f-5561-4602-bc12-07848b3c7a17
+                        email: cody@emailguardalpha.com
+                        provider: Google
+                        sender_email_account_address: null
+                        status: waiting_for_email
+                        folder: null
+                        created_at: '2024-07-27T04:38:19.000000Z'
+                        updated_at: '2024-07-27T04:38:19.000000Z'
+                      -
+                        uuid: 9c9eb83f-57e3-42f3-b6e5-fff7069a3ef6
+                        email: eddie@emailguardalpha.com
+                        provider: Google
+                        sender_email_account_address: null
+                        status: waiting_for_email
+                        folder: null
+                        created_at: '2024-07-27T04:38:19.000000Z'
+                        updated_at: '2024-07-27T04:38:19.000000Z'
+                      -
+                        uuid: 9c9eb83f-5a21-46bd-9961-d0ac1c3003b5
+                        email: jake@emailguardalpha.com
+                        provider: Google
+                        sender_email_account_address: null
+                        status: waiting_for_email
+                        folder: null
+                        created_at: '2024-07-27T04:38:19.000000Z'
+                        updated_at: '2024-07-27T04:38:19.000000Z'
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                        example: 9c9eb83f-51dd-4a7e-a494-e63cc4e5f0a5
+                      name:
+                        type: string
+                        example: 'test name'
+                      status:
+                        type: string
+                        example: created
+                      google_workspace_emails_count:
+                        type: integer
+                        example: 3
+                      microsoft_professional_emails_count:
+                        type: integer
+                        example: 0
+                      created_at:
+                        type: string
+                        example: '2024-07-27T04:38:19.000000Z'
+                      updated_at:
+                        type: string
+                        example: '2024-07-27T04:38:19.000000Z'
+                      completed_at:
+                        type: string
+                        example: null
+                      overall_score:
+                        type: string
+                        example: null
+                      filter_phrase:
+                        type: string
+                        example: egipt_XWPOUJwYhKrvElDeqEOeFl4k5r1r2B
+                      comma_separated_test_email_addresses:
+                        type: string
+                        example: 'cody@emailguardalpha.com,eddie@emailguardalpha.com,jake@emailguardalpha.com'
+                      inbox_placement_test_emails:
+                        type: array
+                        example:
+                          -
+                            uuid: 9c9eb83f-5561-4602-bc12-07848b3c7a17
+                            email: cody@emailguardalpha.com
+                            provider: Google
+                            sender_email_account_address: null
+                            status: waiting_for_email
+                            folder: null
+                            created_at: '2024-07-27T04:38:19.000000Z'
+                            updated_at: '2024-07-27T04:38:19.000000Z'
+                          -
+                            uuid: 9c9eb83f-57e3-42f3-b6e5-fff7069a3ef6
+                            email: eddie@emailguardalpha.com
+                            provider: Google
+                            sender_email_account_address: null
+                            status: waiting_for_email
+                            folder: null
+                            created_at: '2024-07-27T04:38:19.000000Z'
+                            updated_at: '2024-07-27T04:38:19.000000Z'
+                          -
+                            uuid: 9c9eb83f-5a21-46bd-9961-d0ac1c3003b5
+                            email: jake@emailguardalpha.com
+                            provider: Google
+                            sender_email_account_address: null
+                            status: waiting_for_email
+                            folder: null
+                            created_at: '2024-07-27T04:38:19.000000Z'
+                            updated_at: '2024-07-27T04:38:19.000000Z'
+                        items:
+                          type: object
+                          properties:
+                            uuid:
+                              type: string
+                              example: 9c9eb83f-5561-4602-bc12-07848b3c7a17
+                            email:
+                              type: string
+                              example: cody@emailguardalpha.com
+                            provider:
+                              type: string
+                              example: Google
+                            sender_email_account_address:
+                              type: string
+                              example: null
+                            status:
+                              type: string
+                              example: waiting_for_email
+                            folder:
+                              type: string
+                              example: null
+                            created_at:
+                              type: string
+                              example: '2024-07-27T04:38:19.000000Z'
+                            updated_at:
+                              type: string
+                              example: '2024-07-27T04:38:19.000000Z'
+      tags:
+        - 'Inbox Placement Tests'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: ''
+                  example: 'test name'
+              required:
+                - name
+  '/api/v1/inbox-placement-tests/{id}':
+    get:
+      summary: 'Show Inbox Placement Test'
+      operationId: showInboxPlacementTest
+      description: 'Shows an inbox placement test with all its details'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    uuid: 9c9eb83f-51dd-4a7e-a494-e63cc4e5f0a5
+                    name: 'test name'
+                    status: created
+                    google_workspace_emails_count: 3
+                    microsoft_professional_emails_count: 0
+                    created_at: '2024-07-27T04:38:19.000000Z'
+                    updated_at: '2024-07-27T04:38:19.000000Z'
+                    completed_at: null
+                    overall_score: 50
+                    filter_phrase: egipt_XWPOUJwYhKrvElDeqEOeFl4k5r1r2B
+                    comma_separated_test_email_addresses: 'cody@emailguardalpha.com,eddie@emailguardalpha.com,jake@emailguardalpha.com'
+                    inbox_placement_test_emails:
+                      -
+                        uuid: 9c9eb83f-5561-4602-bc12-07848b3c7a17
+                        email: cody@emailguardalpha.com
+                        provider: Google
+                        sender_email_account_address: null
+                        status: waiting_for_email
+                        folder: null
+                        created_at: '2024-07-27T04:38:19.000000Z'
+                        updated_at: '2024-07-27T04:38:19.000000Z'
+                      -
+                        uuid: 9c9eb83f-57e3-42f3-b6e5-fff7069a3ef6
+                        email: eddie@emailguardalpha.com
+                        provider: Google
+                        sender_email_account_address: null
+                        status: waiting_for_email
+                        folder: null
+                        created_at: '2024-07-27T04:38:19.000000Z'
+                        updated_at: '2024-07-27T04:38:19.000000Z'
+                      -
+                        uuid: 9c9eb83f-5a21-46bd-9961-d0ac1c3003b5
+                        email: jake@emailguardalpha.com
+                        provider: Google
+                        sender_email_account_address: null
+                        status: waiting_for_email
+                        folder: null
+                        created_at: '2024-07-27T04:38:19.000000Z'
+                        updated_at: '2024-07-27T04:38:19.000000Z'
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                        example: 9c9eb83f-51dd-4a7e-a494-e63cc4e5f0a5
+                      name:
+                        type: string
+                        example: 'test name'
+                      status:
+                        type: string
+                        example: created
+                      google_workspace_emails_count:
+                        type: integer
+                        example: 3
+                      microsoft_professional_emails_count:
+                        type: integer
+                        example: 0
+                      created_at:
+                        type: string
+                        example: '2024-07-27T04:38:19.000000Z'
+                      updated_at:
+                        type: string
+                        example: '2024-07-27T04:38:19.000000Z'
+                      completed_at:
+                        type: string
+                        example: null
+                      overall_score:
+                        type: integer
+                        example: 50
+                      filter_phrase:
+                        type: string
+                        example: egipt_XWPOUJwYhKrvElDeqEOeFl4k5r1r2B
+                      comma_separated_test_email_addresses:
+                        type: string
+                        example: 'cody@emailguardalpha.com,eddie@emailguardalpha.com,jake@emailguardalpha.com'
+                      inbox_placement_test_emails:
+                        type: array
+                        example:
+                          -
+                            uuid: 9c9eb83f-5561-4602-bc12-07848b3c7a17
+                            email: cody@emailguardalpha.com
+                            provider: Google
+                            sender_email_account_address: null
+                            status: waiting_for_email
+                            folder: null
+                            created_at: '2024-07-27T04:38:19.000000Z'
+                            updated_at: '2024-07-27T04:38:19.000000Z'
+                          -
+                            uuid: 9c9eb83f-57e3-42f3-b6e5-fff7069a3ef6
+                            email: eddie@emailguardalpha.com
+                            provider: Google
+                            sender_email_account_address: null
+                            status: waiting_for_email
+                            folder: null
+                            created_at: '2024-07-27T04:38:19.000000Z'
+                            updated_at: '2024-07-27T04:38:19.000000Z'
+                          -
+                            uuid: 9c9eb83f-5a21-46bd-9961-d0ac1c3003b5
+                            email: jake@emailguardalpha.com
+                            provider: Google
+                            sender_email_account_address: null
+                            status: waiting_for_email
+                            folder: null
+                            created_at: '2024-07-27T04:38:19.000000Z'
+                            updated_at: '2024-07-27T04:38:19.000000Z'
+                        items:
+                          type: object
+                          properties:
+                            uuid:
+                              type: string
+                              example: 9c9eb83f-5561-4602-bc12-07848b3c7a17
+                            email:
+                              type: string
+                              example: cody@emailguardalpha.com
+                            provider:
+                              type: string
+                              example: Google
+                            sender_email_account_address:
+                              type: string
+                              example: null
+                            status:
+                              type: string
+                              example: waiting_for_email
+                            folder:
+                              type: string
+                              example: null
+                            created_at:
+                              type: string
+                              example: '2024-07-27T04:38:19.000000Z'
+                            updated_at:
+                              type: string
+                              example: '2024-07-27T04:38:19.000000Z'
+      tags:
+        - 'Inbox Placement Tests'
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'uuid of the inbox placement test'
+        example: 9c9eb83f-51dd-4a7e-a494-e63cc4e5f0a5
+        required: true
+        schema:
+          type: string
+  /api/v1/spam-filter-tests:
+    get:
+      summary: 'List Spam Filter Tests'
+      operationId: listSpamFilterTests
+      description: 'Retrieves a collection of spam filter tests associated with the authenticated workspace.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    -
+                      name: 'Test 1'
+                      status: completed
+                      sent_from: test1@example.com
+                      sending_server_ip: 192.0.2.1
+                      score: 10.0
+                    -
+                      name: 'Test 2'
+                      status: pending
+                      sent_from: test2@example.com
+                      sending_server_ip: 198.51.100.1
+                      score: 8.5
+                properties:
+                  data:
+                    type: array
+                    example:
+                      -
+                        name: 'Test 1'
+                        status: completed
+                        sent_from: test1@example.com
+                        sending_server_ip: 192.0.2.1
+                        score: 10
+                      -
+                        name: 'Test 2'
+                        status: pending
+                        sent_from: test2@example.com
+                        sending_server_ip: 198.51.100.1
+                        score: 8.5
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: 'Test 1'
+                        status:
+                          type: string
+                          example: completed
+                        sent_from:
+                          type: string
+                          example: test1@example.com
+                        sending_server_ip:
+                          type: string
+                          example: 192.0.2.1
+                        score:
+                          type: number
+                          example: 10.0
+      tags:
+        - 'Spam Filter Tests'
+    post:
+      summary: 'Create Spam Filter Test'
+      operationId: createSpamFilterTest
+      description: 'Creates a new email test for the authenticated workspace.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    name: 'Test 1'
+                    spam_filter_email_address: ha8hnsha+9c0843cb-ce29-49a1-a278-d490a762600d@eguardtest.com
+                    status: pending
+                    sent_from: test1@example.com
+                    sending_server_ip: Unknown
+                    score: 0.0
+                    score_breakdown: null
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        example: 'Test 1'
+                      spam_filter_email_address:
+                        type: string
+                        example: ha8hnsha+9c0843cb-ce29-49a1-a278-d490a762600d@eguardtest.com
+                      status:
+                        type: string
+                        example: pending
+                      sent_from:
+                        type: string
+                        example: test1@example.com
+                      sending_server_ip:
+                        type: string
+                        example: Unknown
+                      score:
+                        type: number
+                        example: 0.0
+                      score_breakdown:
+                        type: string
+                        example: null
+      tags:
+        - 'Spam Filter Tests'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'The name for the email test.'
+                  example: 'Test 1'
+              required:
+                - name
+  '/api/v1/spam-filter-tests/{email_test_uuid}':
+    get:
+      summary: 'Show Spam Filter Test Details'
+      operationId: showSpamFilterTestDetails
+      description: 'Retrieves details of a specific spam filter test.'
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    uuid: 9bfbf296-0de1-40dd-ae46-9988fff073b8
+                    name: 'Test 1'
+                    status: completed
+                    sent_from: test1@example.com
+                    sending_server_ip: 192.0.2.1
+                    score: 10.0
+                    score_breakdown:
+                      ip: 209.85.160.45
+                      size: 2860
+                      user: unknown
+                      score: 3.79
+                      action: 'no action'
+                      subject: 'try again'
+                      symbols:
+                        ASN:
+                          name: ASN
+                          score: 0
+                          options:
+                            - 'asn:15169, ipnet:209.85.128.0/17, country:US'
+                          metric_score: 0
+                        BCC:
+                          name: BCC
+                          score: 0
+                          metric_score: 0
+                        ARC_NA:
+                          name: ARC_NA
+                          score: 0
+                          description: 'ARC signature absent'
+                          metric_score: 0
+                        MX_GOOD:
+                          name: MX_GOOD
+                          score: -0.01
+                          options: []
+                          description: 'Domain has working MX'
+                          metric_score: -0.01
+                        MIME_GOOD:
+                          name: MIME_GOOD
+                          score: -0.1
+                          options:
+                            - multipart/alternative
+                            - text/plain
+                          description: 'Known content-type'
+                          metric_score: -0.1
+                        ARC_SIGNED:
+                          name: ARC_SIGNED
+                          score: 0
+                          options:
+                            - 'testseguard.com:s=dkim:i=1'
+                          metric_score: 0
+                        DKIM_TRACE:
+                          name: DKIM_TRACE
+                          score: 0
+                          options:
+                            - 'emailguard-io.20230601.gappssmtp.com:+'
+                          description: 'DKIM trace symbol'
+                          metric_score: 0
+                        MIME_TRACE:
+                          name: MIME_TRACE
+                          score: 0
+                          options:
+                            - '0:+'
+                            - '1:+'
+                            - '2:~'
+                          metric_score: 0
+                        TO_DN_NONE:
+                          name: TO_DN_NONE
+                          score: 0
+                          description: 'None of the recipients have display names'
+                          metric_score: 0
+                        FROM_HAS_DN:
+                          name: FROM_HAS_DN
+                          score: 0
+                          description: 'From header has a display name'
+                          metric_score: 0
+                        R_SPF_ALLOW:
+                          name: R_SPF_ALLOW
+                          score: 0
+                          options:
+                            - '+ip4:209.85.128.0/17'
+                          description: 'SPF verification allows sending'
+                          metric_score: -0.2
+                        TAGGED_RCPT:
+                          name: TAGGED_RCPT
+                          score: 0
+                          options:
+                            - 9c07cc16-da8d-4e81-84ea-a5af4fcc4840
+                          description: 'SMTP recipients have plus tags'
+                          metric_score: 0
+                        R_DKIM_ALLOW:
+                          name: R_DKIM_ALLOW
+                          score: 0
+                          options:
+                            - 'emailguard-io.20230601.gappssmtp.com:s=20230601'
+                          description: 'DKIM verification succeed'
+                          metric_score: -0.2
+                        MISSING_XM_UA:
+                          name: MISSING_XM_UA
+                          score: 0
+                          description: 'Message has neither X-Mailer nor User-Agent header'
+                          metric_score: 0
+                        RCVD_TLS_LAST:
+                          name: RCVD_TLS_LAST
+                          score: 0
+                          description: 'Last hop used encrypted transports'
+                          metric_score: 0
+                        RCPT_COUNT_ONE:
+                          name: RCPT_COUNT_ONE
+                          score: 0
+                          options:
+                            - '1'
+                          description: 'One recipient'
+                          metric_score: 0
+                        RCVD_COUNT_ONE:
+                          name: RCVD_COUNT_ONE
+                          score: 0
+                          options:
+                            - '1'
+                          description: 'Message has one Received header'
+                          metric_score: 0
+                        FROM_EQ_ENVFROM:
+                          name: FROM_EQ_ENVFROM
+                          score: 0
+                          description: 'From address is the same as the envelope'
+                          metric_score: 0
+                        BAD_REP_POLICIES:
+                          name: BAD_REP_POLICIES
+                          score: 2
+                          description: 'Contains valid policies but are also marked by fuzzy/bayes/SURBL/RBL'
+                          metric_score: 2
+                        RBL_SORBS_RECENT:
+                          name: RBL_SORBS_RECENT
+                          score: 2
+                          options:
+                            - '209.85.160.45:from'
+                          description: 'List of hosts that have been noted as sending spam/UCE/UBE to the admins of SORBS within the last 28 days (includes new.spam.dnsbl.sorbs.net).'
+                          metric_score: 2
+                        DMARC_POLICY_ALLOW:
+                          name: DMARC_POLICY_ALLOW
+                          score: 0
+                          options:
+                            - emailguard.io
+                            - none
+                          description: 'DMARC permit policy'
+                          metric_score: -0.5
+                        RCVD_IN_DNSWL_NONE:
+                          name: RCVD_IN_DNSWL_NONE
+                          score: 0
+                          options:
+                            - '209.85.160.45:from'
+                          description: 'Sender listed at https://www.dnswl.org, no trust'
+                          metric_score: 0
+                        RWL_MAILSPIKE_GOOD:
+                          name: RWL_MAILSPIKE_GOOD
+                          score: -0.1
+                          options:
+                            - '209.85.160.45:from'
+                          description: 'From address is listed in Mailspike RWL - good reputation'
+                          metric_score: -0.1
+                        RCPT_MAILCOW_DOMAIN:
+                          name: RCPT_MAILCOW_DOMAIN
+                          score: 0
+                          options:
+                            - testseguard.com
+                          description: 'multimap, type rcpt: RCPT_MAILCOW_DOMAIN'
+                          metric_score: 0
+                        TO_MATCH_ENVRCPT_ALL:
+                          name: TO_MATCH_ENVRCPT_ALL
+                          score: 0
+                          description: 'All of the recipients match the envelope'
+                          metric_score: 0
+                      rcpt_mime:
+                        - OkdRGHnn@testseguard.com
+                      rcpt_smtp:
+                        - OkdRGHnn@testseguard.com
+                      time_real: 3.444052
+                      unix_time: 1715573061
+                      is_skipped: false
+                      message-id: CAHC2zCFifQe3dJKYiwHKk=Mq=J+MWfTuBT0rZ0BoG4Eq6GcoNg@mail.gmail.com
+                      thresholds:
+                        reject: 15
+                        greylist: 7
+                        'add header': 8
+                      sender_mime: support@emailguard.io
+                      sender_smtp: support@emailguard.io
+                      required_score: 15
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                        example: 9bfbf296-0de1-40dd-ae46-9988fff073b8
+                      name:
+                        type: string
+                        example: 'Test 1'
+                      status:
+                        type: string
+                        example: completed
+                      sent_from:
+                        type: string
+                        example: test1@example.com
+                      sending_server_ip:
+                        type: string
+                        example: 192.0.2.1
+                      score:
+                        type: number
+                        example: 10.0
+                      score_breakdown:
+                        type: object
+                        properties:
+                          ip:
+                            type: string
+                            example: 209.85.160.45
+                          size:
+                            type: integer
+                            example: 2860
+                          user:
+                            type: string
+                            example: unknown
+                          score:
+                            type: number
+                            example: 3.79
+                          action:
+                            type: string
+                            example: 'no action'
+                          subject:
+                            type: string
+                            example: 'try again'
+                          symbols:
+                            type: object
+                            properties:
+                              ASN:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    example: ASN
+                                  score:
+                                    type: integer
+                                    example: 0
+                                  options:
+                                    type: array
+                                    example:
+                                      - 'asn:15169, ipnet:209.85.128.0/17, country:US'
+                                    items:
+                                      type: string
+                                  metric_score:
+                                    type: integer
+                                    example: 0
+                              BCC:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    example: BCC
+                                  score:
+                                    type: integer
+                                    example: 0
+                                  metric_score:
+                                    type: integer
+                                    example: 0
+                              ARC_NA:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    example: ARC_NA
+                                  score:
+                                    type: integer
+                                    example: 0
+                                  description:
+                                    type: string
+                                    example: 'ARC signature absent'
+                                  metric_score:
+                                    type: integer
+                                    example: 0
+                              MX_GOOD:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    example: MX_GOOD
+                                  score:
+                                    type: number
+                                    example: -0.01
+                                  options:
+                                    type: array
+                                    example: []
+                                  description:
+                                    type: string
+                                    example: 'Domain has working MX'
+                                  metric_score:
+                                    type: number
+                                    example: -0.01
+                              MIME_GOOD:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    example: MIME_GOOD
+                                  score:
+                                    type: number
+                                    example: -0.1
+                                  options:
+                                    type: array
+                                    example:
+                                      - multipart/alternative
+                                      - text/plain
+                                    items:
+                                      type: string
+                                  description:
+                                    type: string
+                                    example: 'Known content-type'
+                                  metric_score:
+                                    type: number
+                                    example: -0.1
+                              ARC_SIGNED:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    example: ARC_SIGNED
+                                  score:
+                                    type: integer
+                                    example: 0
+                                  options:
+                                    type: array
+                                    example:
+                                      - 'testseguard.com:s=dkim:i=1'
+                                    items:
+                                      type: string
+                                  metric_score:
+                                    type: integer
+                                    example: 0
+                              DKIM_TRACE:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    example: DKIM_TRACE
+                                  score:
+                                    type: integer
+                                    example: 0
+                                  options:
+                                    type: array
+                                    example:
+                                      - 'emailguard-io.20230601.gappssmtp.com:+'
+                                    items:
+                                      type: string
+                                  description:
+                                    type: string
+                                    example: 'DKIM trace symbol'
+                                  metric_score:
+                                    type: integer
+                                    example: 0
+                              MIME_TRACE:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    example: MIME_TRACE
+                                  score:
+                                    type: integer
+                                    example: 0
+                                  options:
+                                    type: array
+                                    example:
+                                      - '0:+'
+                                      - '1:+'
+                                      - '2:~'
+                                    items:
+                                      type: string
+                                  metric_score:
+                                    type: integer
+                                    example: 0
+                              TO_DN_NONE:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    example: TO_DN_NONE
+                                  score:
+                                    type: integer
+                                    example: 0
+                                  description:
+                                    type: string
+                                    example: 'None of the recipients have display names'
+                                  metric_score:
+                                    type: integer
+                                    example: 0
+                              FROM_HAS_DN:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    example: FROM_HAS_DN
+                                  score:
+                                    type: integer
+                                    example: 0
+                                  description:
+                                    type: string
+                                    example: 'From header has a display name'
+                                  metric_score:
+                                    type: integer
+                                    example: 0
+                              R_SPF_ALLOW:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    example: R_SPF_ALLOW
+                                  score:
+                                    type: integer
+                                    example: 0
+                                  options:
+                                    type: array
+                                    example:
+                                      - '+ip4:209.85.128.0/17'
+                                    items:
+                                      type: string
+                                  description:
+                                    type: string
+                                    example: 'SPF verification allows sending'
+                                  metric_score:
+                                    type: number
+                                    example: -0.2
+                              TAGGED_RCPT:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    example: TAGGED_RCPT
+                                  score:
+                                    type: integer
+                                    example: 0
+                                  options:
+                                    type: array
+                                    example:
+                                      - 9c07cc16-da8d-4e81-84ea-a5af4fcc4840
+                                    items:
+                                      type: string
+                                  description:
+                                    type: string
+                                    example: 'SMTP recipients have plus tags'
+                                  metric_score:
+                                    type: integer
+                                    example: 0
+                              R_DKIM_ALLOW:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    example: R_DKIM_ALLOW
+                                  score:
+                                    type: integer
+                                    example: 0
+                                  options:
+                                    type: array
+                                    example:
+                                      - 'emailguard-io.20230601.gappssmtp.com:s=20230601'
+                                    items:
+                                      type: string
+                                  description:
+                                    type: string
+                                    example: 'DKIM verification succeed'
+                                  metric_score:
+                                    type: number
+                                    example: -0.2
+                              MISSING_XM_UA:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    example: MISSING_XM_UA
+                                  score:
+                                    type: integer
+                                    example: 0
+                                  description:
+                                    type: string
+                                    example: 'Message has neither X-Mailer nor User-Agent header'
+                                  metric_score:
+                                    type: integer
+                                    example: 0
+                              RCVD_TLS_LAST:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    example: RCVD_TLS_LAST
+                                  score:
+                                    type: integer
+                                    example: 0
+                                  description:
+                                    type: string
+                                    example: 'Last hop used encrypted transports'
+                                  metric_score:
+                                    type: integer
+                                    example: 0
+                              RCPT_COUNT_ONE:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    example: RCPT_COUNT_ONE
+                                  score:
+                                    type: integer
+                                    example: 0
+                                  options:
+                                    type: array
+                                    example:
+                                      - '1'
+                                    items:
+                                      type: string
+                                  description:
+                                    type: string
+                                    example: 'One recipient'
+                                  metric_score:
+                                    type: integer
+                                    example: 0
+                              RCVD_COUNT_ONE:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    example: RCVD_COUNT_ONE
+                                  score:
+                                    type: integer
+                                    example: 0
+                                  options:
+                                    type: array
+                                    example:
+                                      - '1'
+                                    items:
+                                      type: string
+                                  description:
+                                    type: string
+                                    example: 'Message has one Received header'
+                                  metric_score:
+                                    type: integer
+                                    example: 0
+                              FROM_EQ_ENVFROM:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    example: FROM_EQ_ENVFROM
+                                  score:
+                                    type: integer
+                                    example: 0
+                                  description:
+                                    type: string
+                                    example: 'From address is the same as the envelope'
+                                  metric_score:
+                                    type: integer
+                                    example: 0
+                              BAD_REP_POLICIES:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    example: BAD_REP_POLICIES
+                                  score:
+                                    type: integer
+                                    example: 2
+                                  description:
+                                    type: string
+                                    example: 'Contains valid policies but are also marked by fuzzy/bayes/SURBL/RBL'
+                                  metric_score:
+                                    type: integer
+                                    example: 2
+                              RBL_SORBS_RECENT:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    example: RBL_SORBS_RECENT
+                                  score:
+                                    type: integer
+                                    example: 2
+                                  options:
+                                    type: array
+                                    example:
+                                      - '209.85.160.45:from'
+                                    items:
+                                      type: string
+                                  description:
+                                    type: string
+                                    example: 'List of hosts that have been noted as sending spam/UCE/UBE to the admins of SORBS within the last 28 days (includes new.spam.dnsbl.sorbs.net).'
+                                  metric_score:
+                                    type: integer
+                                    example: 2
+                              DMARC_POLICY_ALLOW:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    example: DMARC_POLICY_ALLOW
+                                  score:
+                                    type: integer
+                                    example: 0
+                                  options:
+                                    type: array
+                                    example:
+                                      - emailguard.io
+                                      - none
+                                    items:
+                                      type: string
+                                  description:
+                                    type: string
+                                    example: 'DMARC permit policy'
+                                  metric_score:
+                                    type: number
+                                    example: -0.5
+                              RCVD_IN_DNSWL_NONE:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    example: RCVD_IN_DNSWL_NONE
+                                  score:
+                                    type: integer
+                                    example: 0
+                                  options:
+                                    type: array
+                                    example:
+                                      - '209.85.160.45:from'
+                                    items:
+                                      type: string
+                                  description:
+                                    type: string
+                                    example: 'Sender listed at https://www.dnswl.org, no trust'
+                                  metric_score:
+                                    type: integer
+                                    example: 0
+                              RWL_MAILSPIKE_GOOD:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    example: RWL_MAILSPIKE_GOOD
+                                  score:
+                                    type: number
+                                    example: -0.1
+                                  options:
+                                    type: array
+                                    example:
+                                      - '209.85.160.45:from'
+                                    items:
+                                      type: string
+                                  description:
+                                    type: string
+                                    example: 'From address is listed in Mailspike RWL - good reputation'
+                                  metric_score:
+                                    type: number
+                                    example: -0.1
+                              RCPT_MAILCOW_DOMAIN:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    example: RCPT_MAILCOW_DOMAIN
+                                  score:
+                                    type: integer
+                                    example: 0
+                                  options:
+                                    type: array
+                                    example:
+                                      - testseguard.com
+                                    items:
+                                      type: string
+                                  description:
+                                    type: string
+                                    example: 'multimap, type rcpt: RCPT_MAILCOW_DOMAIN'
+                                  metric_score:
+                                    type: integer
+                                    example: 0
+                              TO_MATCH_ENVRCPT_ALL:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    example: TO_MATCH_ENVRCPT_ALL
+                                  score:
+                                    type: integer
+                                    example: 0
+                                  description:
+                                    type: string
+                                    example: 'All of the recipients match the envelope'
+                                  metric_score:
+                                    type: integer
+                                    example: 0
+                          rcpt_mime:
+                            type: array
+                            example:
+                              - OkdRGHnn@testseguard.com
+                            items:
+                              type: string
+                          rcpt_smtp:
+                            type: array
+                            example:
+                              - OkdRGHnn@testseguard.com
+                            items:
+                              type: string
+                          time_real:
+                            type: number
+                            example: 3.444052
+                          unix_time:
+                            type: integer
+                            example: 1715573061
+                          is_skipped:
+                            type: boolean
+                            example: false
+                          message-id:
+                            type: string
+                            example: CAHC2zCFifQe3dJKYiwHKk=Mq=J+MWfTuBT0rZ0BoG4Eq6GcoNg@mail.gmail.com
+                          thresholds:
+                            type: object
+                            properties:
+                              reject:
+                                type: integer
+                                example: 15
+                              greylist:
+                                type: integer
+                                example: 7
+                              'add header':
+                                type: integer
+                                example: 8
+                          sender_mime:
+                            type: string
+                            example: support@emailguard.io
+                          sender_smtp:
+                            type: string
+                            example: support@emailguard.io
+                          required_score:
+                            type: integer
+                            example: 15
+      tags:
+        - 'Spam Filter Tests'
+    parameters:
+      -
+        in: path
+        name: email_test_uuid
+        description: 'The UUID of the email test.'
+        example: 301660cb-c2a5-3d95-9e0c-cc0aad62f2d3
+        required: true
+        schema:
+          type: string
+tags:
+  -
+    name: Authentication
+    description: "\nThis section provides endpoints for user authentication and token retrieval"
+  -
+    name: 'Account management'
+    description: "\nThis section handles operations related to user accounts within the application.\nIt includes endpoints for user registration, profile management and password reset."
+  -
+    name: Workspaces
+    description: "\nThis section provides endpoints to manage workspace-related operations.\nIt includes functionalities for creating, updating, and deleting workspaces"
+  -
+    name: Domains
+    description: "\nThis section manages operations related to domain management for authenticated users.\nIt provides endpoints for listing, creating, updating, and deleting domains.\nAdditionally, there are endpoints for managing SPF, DKIM, and DMARC records\nassociated with each domain to enhance email security and authentication."
+  -
+    name: 'Email Accounts'
+    description: "\nThis section provides endpoints to manage email accounts associated with a workspace.\nIt includes functionalities for listing all email accounts, retrieving details of a specific email account,\ncreating new IMAP/SMTP email accounts, testing IMAP and SMTP connections, and deleting existing email accounts."
+  -
+    name: 'Contact Verification'
+    description: "\nThis section provides endpoints to manage and verify contact lists.\nIt includes functionalities for listing all contact lists, retrieving details of a specific contact list,\ndownloading completed contact lists, and creating new contact verification requests."
+  -
+    name: 'Blacklist Checks'
+    description: "\nThis section provides endpoints to manage and perform blacklist checks on domains\nand email accounts. It includes functionalities for listing all blacklist checks for domains and email accounts,\nretrieving details of a specific blacklist check, and creating new ad-hoc blacklist checks."
+  -
+    name: 'DMARC Reports'
+    description: "\nThis section provides endpoints to manage and retrieve DMARC reports\nfor domains associated with a workspace. It includes functionalities for listing domains with DMARC reports,\nretrieving DMARC report statistics, sources, and failures for specific domains between two dates."
+  -
+    name: 'Email Authentication'
+    description: "\nThis section provides endpoints to manage SPF, DKIM, and DMARC records for domains.\nIt includes functiona'lities for looking up, validating, and generating SPF, DKIM, and DMARC records."
+  -
+    name: 'Content Spam Check'
+    description: "\nThis section provides an endpoint to check content for spam.\nIt includes functionalities for submitting content for spam check and managing usage limits."
+  -
+    name: 'Hosted Domain Redirect'
+    description: "\nThis section provides endpoints to manage hosted domain redirects.\nIt includes functionalities for listing, creating, viewing, and deleting hosted domain redirects."
+  -
+    name: 'Domain Host Lookup'
+    description: "\nFind the domain host or corporate spam filter for any domain."
+  -
+    name: 'Domain Masking Proxy'
+    description: "\nThis section provides endpoints to manage all your domain masking proxies."
+  -
+    name: 'Email Host Lookup'
+    description: "\nFind the email host or corporate spam filter for any email address."
+  -
+    name: Endpoints
+    description: ''
+  -
+    name: 'Inbox Placement Tests'
+    description: "\nThis section provides endpoints to manage and perform inbox placement tests using test inboxes on various\nEmail Service providers."
+  -
+    name: 'Spam Filter Tests'
+    description: "\nThis section provides endpoints to manage email tests associated with a workspace.\nIt includes functionalities for listing all email tests, retrieving details of a specific email test,\nand creating new email tests."
+components:
+  securitySchemes:
+    default:
+      type: http
+      scheme: bearer
+      description: 'You can retrieve your token by visiting your dashboard and clicking <b>Generate API token</b>.'
+security:
+  -
+    default: []

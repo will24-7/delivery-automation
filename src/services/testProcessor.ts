@@ -1,8 +1,14 @@
 import { IEmailTestProvider } from "./emailProviders";
 import Domain, { IDomain } from "../models/Domain";
-"mpo/osPlacemePlTastRnsult,t{
-t IPlacementResuRult,
-} from"..modls/PlemntRult";
+import PlacementTestResult, {
+  IPlacementTestResult,
+  EmailFolder,
+} from "../models/PlacementTestResult";
+
+interface IRecentTest {
+  score: number;
+  date: Date;
+}
 
 /**
  * Configuration interface for TestProcessor
@@ -133,7 +139,7 @@ export class TestProcessor implements ITestProcessor {
             await test.updateTestEmailStatus(
               email.email,
               email.status as "waiting_for_email" | "received" | "not_received",
-              email.folder
+              email.folder as EmailFolder
             );
           }
 
@@ -239,7 +245,10 @@ export class TestProcessor implements ITestProcessor {
 
     const recentScores = domain.recentTests.slice(-3);
     const averageScore =
-      recentScores.reduce((sum, test) => sum + test.score, 0) / 3;
+      recentScores.reduce(
+        (sum: number, test: IRecentTest) => sum + test.score,
+        0
+      ) / 3;
 
     return averageScore <= this.config.rotationThreshold;
   }
